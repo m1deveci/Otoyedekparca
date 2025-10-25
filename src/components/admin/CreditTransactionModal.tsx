@@ -31,6 +31,7 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
 
     try {
       // Türk para birimi formatından sayıya çevir
+      // Türk formatı: 1.234,56 -> 1234.56
       let amount = parseFloat(formData.amount.replace(/\./g, '').replace(',', '.')) || 0;
       
       // İşlem türüne göre tutar hesaplama
