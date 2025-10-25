@@ -2,12 +2,17 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Filter } from 'lucide-react';
 import { Header } from './components/Header';
+import { Footer } from './components/Footer';
 import { ProductCard } from './components/ProductCard';
 import { CartDrawer } from './components/CartDrawer';
 import { CheckoutModal } from './components/CheckoutModal';
 import { LoginModal } from './components/LoginModal';
 import { ProfileModal } from './components/ProfileModal';
 import { AdminPanel } from './components/admin/AdminPanel';
+import { AboutPage } from './components/pages/AboutPage';
+import { ContactPage } from './components/pages/ContactPage';
+import { FAQPage } from './components/pages/FAQPage';
+import { OrderTrackingPage } from './components/pages/OrderTrackingPage';
 import { CartProvider, useCart } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { apiClient } from './lib/api';
@@ -344,6 +349,8 @@ function AppContent() {
       />
 
       {isAdmin && <AdminPanel isOpen={adminOpen} onClose={() => setAdminOpen(false)} />}
+      
+      <Footer />
     </div>
   );
 }
@@ -352,12 +359,24 @@ function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<AppContent />} />
-            <Route path="/admin/*" element={<AdminRoute />} />
-          </Routes>
-        </Router>
+            <Router>
+              <Routes>
+                <Route path="/" element={<AppContent />} />
+                <Route path="/admin/*" element={<AdminRoute />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/faq" element={<FAQPage />} />
+                <Route path="/order-tracking" element={<OrderTrackingPage />} />
+                <Route path="/privacy-policy" element={<div>Gizlilik Politikası</div>} />
+                <Route path="/distance-sales-contract" element={<div>Mesafeli Satış Sözleşmesi</div>} />
+                <Route path="/payment-delivery" element={<div>Ödeme & Teslimat</div>} />
+                <Route path="/cancellation-return" element={<div>İptal İade Koşulları</div>} />
+                <Route path="/return-delivery-policy" element={<div>İade & Teslimat Politikaları</div>} />
+                <Route path="/terms-of-service" element={<div>Kullanım Koşulları</div>} />
+                <Route path="/category/:slug" element={<div>Kategori Sayfası</div>} />
+                <Route path="/discounted-products" element={<div>İndirimli Ürünler</div>} />
+              </Routes>
+            </Router>
       </CartProvider>
     </AuthProvider>
   );
