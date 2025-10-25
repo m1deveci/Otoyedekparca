@@ -363,6 +363,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<AppContent />} />
                 <Route path="/admin/*" element={<AdminRoute />} />
+                <Route path="/admin/technical-services" element={<AdminRoute />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/faq" element={<FAQPage />} />

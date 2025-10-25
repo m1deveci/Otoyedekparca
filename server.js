@@ -366,6 +366,132 @@ app.get('/api/admin/dashboard', async (req, res) => {
   }
 });
 
+// Technical Services endpoints
+app.get('/api/admin/technical-services', async (req, res) => {
+  try {
+    const [rows] = await pool.execute('SELECT * FROM technical_services ORDER BY created_at DESC');
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching technical services:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/admin/technical-services', async (req, res) => {
+  try {
+    const { name, contact_person, phone, email, address, tax_number, credit_limit, is_active } = req.body;
+    
+    const [result] = await pool.execute(
+      'INSERT INTO technical_services (name, contact_person, phone, email, address, tax_number, credit_limit, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [name, contact_person, phone, email, address, tax_number, credit_limit, is_active]
+    );
+    res.json({ id: result.insertId, ...req.body });
+  } catch (error) {
+    console.error('Error creating technical service:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/api/admin/technical-services/:id', async (req, res) => {
+  try {
+    const { name, contact_person, phone, email, address, tax_number, credit_limit, is_active } = req.body;
+    
+    await pool.execute(
+      'UPDATE technical_services SET name = ?, contact_person = ?, phone = ?, email = ?, address = ?, tax_number = ?, credit_limit = ?, is_active = ? WHERE id = ?',
+      [name, contact_person, phone, email, address, tax_number, credit_limit, is_active, req.params.id]
+    );
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating technical service:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete('/api/admin/technical-services/:id', async (req, res) => {
+  try {
+    await pool.execute('DELETE FROM technical_services WHERE id = ?', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting technical service:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Credit transactions endpoints
+app.get('/api/admin/technical-services/:id/transactions', async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      'SELECT * FROM credit_transactions WHERE technical_service_id = ? ORDER BY created_at DESC',
+      [req.params.id]
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching credit transactions:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/admin/technical-services/:id/transactions', async (req, res) => {
+  try {
+    const { transaction_type, amount, description, reference_number, created_by } = req.body;
+    
+    const [result] = await pool.execute(
+      'INSERT INTO credit_transactions (technical_service_id, transaction_type, amount, description, reference_number, created_by) VALUES (?, ?, ?, ?, ?, ?)',
+      [req.params.id, transaction_type, amount, description, reference_number, created_by]
+    );
+    
+    // Update current balance
+    await pool.execute(
+      'UPDATE technical_services SET current_balance = current_balance + ? WHERE id = ?',
+      [amount, req.params.id]
+    );
+    
+    res.json({ id: result.insertId, ...req.body });
+  } catch (error) {
+    console.error('Error creating credit transaction:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Credit sales endpoints
+app.get('/api/admin/technical-services/:id/sales', async (req, res) => {
+  try {
+    const [rows] = await pool.execute(`
+      SELECT cs.*, p.name as product_name 
+      FROM credit_sales cs 
+      JOIN products p ON cs.product_id = p.id 
+      WHERE cs.technical_service_id = ? 
+      ORDER BY cs.created_at DESC
+    `, [req.params.id]);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching credit sales:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/admin/technical-services/:id/sales', async (req, res) => {
+  try {
+    const { product_id, quantity, unit_price, total_amount, sale_date, notes } = req.body;
+    
+    const [result] = await pool.execute(
+      'INSERT INTO credit_sales (technical_service_id, product_id, quantity, unit_price, total_amount, sale_date, notes) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [req.params.id, product_id, quantity, unit_price, total_amount, sale_date, notes]
+    );
+    
+    // Update current balance
+    await pool.execute(
+      'UPDATE technical_services SET current_balance = current_balance + ? WHERE id = ?',
+      [total_amount, req.params.id]
+    );
+    
+    res.json({ id: result.insertId, ...req.body });
+  } catch (error) {
+    console.error('Error creating credit sale:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });

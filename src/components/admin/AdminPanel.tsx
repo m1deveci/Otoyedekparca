@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, Package, ShoppingBag, FolderOpen, LogOut, LayoutDashboard, Settings, Menu } from 'lucide-react';
+import { X, Package, ShoppingBag, FolderOpen, LogOut, LayoutDashboard, Settings, Menu, Building2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardTab } from './DashboardTab';
 import { ProductsTab } from './ProductsTab';
 import { CategoriesTab } from './CategoriesTab';
 import { OrdersTab } from './OrdersTab';
+import { TechnicalServicesTab } from './TechnicalServicesTab';
 import { SettingsTab } from './SettingsTab';
 
 interface AdminPanelProps {
@@ -14,27 +15,29 @@ interface AdminPanelProps {
 }
 
 export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'categories' | 'orders' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'categories' | 'orders' | 'technical-services' | 'settings'>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // URL'den aktif tab'ı belirle
-  useEffect(() => {
-    const path = location.pathname;
-    if (path.includes('/admin/products')) {
-      setActiveTab('products');
-    } else if (path.includes('/admin/categories')) {
-      setActiveTab('categories');
-    } else if (path.includes('/admin/orders')) {
-      setActiveTab('orders');
-    } else if (path.includes('/admin/settings')) {
-      setActiveTab('settings');
-    } else {
-      setActiveTab('dashboard');
-    }
-  }, [location.pathname]);
+      // URL'den aktif tab'ı belirle
+      useEffect(() => {
+        const path = location.pathname;
+        if (path.includes('/admin/products')) {
+          setActiveTab('products');
+        } else if (path.includes('/admin/categories')) {
+          setActiveTab('categories');
+        } else if (path.includes('/admin/orders')) {
+          setActiveTab('orders');
+        } else if (path.includes('/admin/technical-services')) {
+          setActiveTab('technical-services');
+        } else if (path.includes('/admin/settings')) {
+          setActiveTab('settings');
+        } else {
+          setActiveTab('dashboard');
+        }
+      }, [location.pathname]);
 
   if (!isOpen) return null;
 
@@ -43,17 +46,18 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     onClose();
   };
 
-  const handleTabChange = (tab: 'dashboard' | 'products' | 'categories' | 'orders' | 'settings') => {
-    setActiveTab(tab);
-    const tabPaths = {
-      dashboard: '/admin',
-      products: '/admin/products',
-      categories: '/admin/categories',
-      orders: '/admin/orders',
-      settings: '/admin/settings'
-    };
-    navigate(tabPaths[tab]);
-  };
+      const handleTabChange = (tab: 'dashboard' | 'products' | 'categories' | 'orders' | 'technical-services' | 'settings') => {
+        setActiveTab(tab);
+        const tabPaths = {
+          dashboard: '/admin',
+          products: '/admin/products',
+          categories: '/admin/categories',
+          orders: '/admin/orders',
+          'technical-services': '/admin/technical-services',
+          settings: '/admin/settings'
+        };
+        navigate(tabPaths[tab]);
+      };
 
   return (
     <div className="fixed inset-0 bg-slate-900 z-50 overflow-hidden">
@@ -134,17 +138,29 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 <span className="font-semibold">Kategoriler</span>
               </button>
 
-              <button
-                onClick={() => handleTabChange('orders')}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                  activeTab === 'orders'
-                    ? 'bg-orange-500 text-white'
-                    : 'text-slate-300 hover:bg-slate-700'
-                }`}
-              >
-                <ShoppingBag className="w-5 h-5" />
-                <span className="font-semibold">Siparişler</span>
-              </button>
+                  <button
+                    onClick={() => handleTabChange('orders')}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      activeTab === 'orders'
+                        ? 'bg-orange-500 text-white'
+                        : 'text-slate-300 hover:bg-slate-700'
+                    }`}
+                  >
+                    <ShoppingBag className="w-5 h-5" />
+                    <span className="font-semibold">Siparişler</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleTabChange('technical-services')}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      activeTab === 'technical-services'
+                        ? 'bg-orange-500 text-white'
+                        : 'text-slate-300 hover:bg-slate-700'
+                    }`}
+                  >
+                    <Building2 className="w-5 h-5" />
+                    <span className="font-semibold">Teknik Servisler</span>
+                  </button>
 
               <button
                 onClick={() => handleTabChange('settings')}
@@ -219,20 +235,35 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                     <span className="font-semibold">Kategoriler</span>
                   </button>
 
-                  <button
-                    onClick={() => {
-                      handleTabChange('orders');
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                      activeTab === 'orders'
-                        ? 'bg-orange-500 text-white'
-                        : 'text-slate-300 hover:bg-slate-700'
-                    }`}
-                  >
-                    <ShoppingBag className="w-5 h-5" />
-                    <span className="font-semibold">Siparişler</span>
-                  </button>
+                      <button
+                        onClick={() => {
+                          handleTabChange('orders');
+                          setMobileMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                          activeTab === 'orders'
+                            ? 'bg-orange-500 text-white'
+                            : 'text-slate-300 hover:bg-slate-700'
+                        }`}
+                      >
+                        <ShoppingBag className="w-5 h-5" />
+                        <span className="font-semibold">Siparişler</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          handleTabChange('technical-services');
+                          setMobileMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                          activeTab === 'technical-services'
+                            ? 'bg-orange-500 text-white'
+                            : 'text-slate-300 hover:bg-slate-700'
+                        }`}
+                      >
+                        <Building2 className="w-5 h-5" />
+                        <span className="font-semibold">Teknik Servisler</span>
+                      </button>
 
                   <button
                     onClick={() => {
@@ -253,13 +284,14 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
             </div>
           )}
 
-          <div className="flex-1 bg-slate-100 overflow-y-auto">
-            {activeTab === 'dashboard' && <DashboardTab />}
-            {activeTab === 'products' && <ProductsTab />}
-            {activeTab === 'categories' && <CategoriesTab />}
-            {activeTab === 'orders' && <OrdersTab />}
-            {activeTab === 'settings' && <SettingsTab />}
-          </div>
+              <div className="flex-1 bg-slate-100 overflow-y-auto">
+                {activeTab === 'dashboard' && <DashboardTab />}
+                {activeTab === 'products' && <ProductsTab />}
+                {activeTab === 'categories' && <CategoriesTab />}
+                {activeTab === 'orders' && <OrdersTab />}
+                {activeTab === 'technical-services' && <TechnicalServicesTab />}
+                {activeTab === 'settings' && <SettingsTab />}
+              </div>
         </div>
       </div>
     </div>
