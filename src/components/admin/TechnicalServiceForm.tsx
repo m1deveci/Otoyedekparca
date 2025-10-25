@@ -63,9 +63,12 @@ export function TechnicalServiceForm({ service, onClose }: TechnicalServiceFormP
         is_active: formData.is_active,
       };
 
+      console.log('Sending data to API:', data);
+      
       let response;
       if (service) {
         // Güncelleme
+        console.log('Updating technical service:', service.id);
         response = await fetch(`/api/admin/technical-services/${service.id}`, {
           method: 'PUT',
           headers: {
@@ -75,6 +78,7 @@ export function TechnicalServiceForm({ service, onClose }: TechnicalServiceFormP
         });
       } else {
         // Yeni oluşturma
+        console.log('Creating new technical service');
         response = await fetch('/api/admin/technical-services', {
           method: 'POST',
           headers: {
@@ -83,6 +87,8 @@ export function TechnicalServiceForm({ service, onClose }: TechnicalServiceFormP
           body: JSON.stringify(data),
         });
       }
+      
+      console.log('API Response status:', response.status);
 
       if (!response.ok) {
         throw new Error('API request failed');

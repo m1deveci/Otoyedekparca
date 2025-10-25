@@ -35,9 +35,12 @@ export function TechnicalServicesTab() {
 
   const loadServices = async () => {
     try {
+      console.log('Loading technical services...');
       const response = await fetch('/api/admin/technical-services');
+      console.log('API Response status:', response.status);
       if (response.ok) {
         const data = await response.json();
+        console.log('Loaded services:', data);
         setServices(data);
       } else {
         // Fallback to mock data if API fails
@@ -82,8 +85,16 @@ export function TechnicalServicesTab() {
     if (!confirm('Bu teknik servisi silmek istediğinize emin misiniz?')) return;
 
     try {
-      // TODO: API endpoint'i implement et
-      console.log('Delete service:', id);
+      console.log('Deleting service:', id);
+      const response = await fetch(`/api/admin/technical-services/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('API request failed');
+      }
+
+      alert('Teknik servis başarıyla silindi!');
       loadServices();
     } catch (error) {
       console.error('Error deleting service:', error);
