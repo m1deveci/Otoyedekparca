@@ -35,18 +35,6 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
       
       // İşlem türüne göre tutar hesaplama
       if (transactionType === 'payment') {
-        // Ödeme yapılıyorsa, mevcut bakiyeden fazla ödeme yapılamaz
-        const currentBalance = service.current_balance || 0;
-        if (amount > currentBalance) {
-          await Swal.fire({
-            title: 'Hata!',
-            text: `Ödeme tutarı mevcut bakiyeden (${currentBalance.toLocaleString('tr-TR')} ₺) fazla olamaz!`,
-            icon: 'error',
-            confirmButtonText: 'Tamam'
-          });
-          setLoading(false);
-          return;
-        }
         // Ödeme tutarını negatif yap (bakiye azaltmak için)
         amount = -amount;
       } else if (transactionType === 'adjustment') {
@@ -252,11 +240,6 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
                     placeholder="0,00"
                     disabled={useFullBalance}
                   />
-                  {transactionType === 'payment' && (service.current_balance || 0) > 0 && (
-                    <p className="text-xs text-slate-500">
-                      Maksimum ödeme: {(service.current_balance || 0).toLocaleString('tr-TR')} ₺
-                    </p>
-                  )}
                 </div>
               </div>
 
