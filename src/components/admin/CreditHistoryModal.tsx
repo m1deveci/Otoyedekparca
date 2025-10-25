@@ -271,8 +271,8 @@ export function CreditHistoryModal({ service, onClose }: CreditHistoryModalProps
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`font-bold ${item.amount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        {item.amount > 0 ? '+' : ''}{item.amount.toLocaleString('tr-TR')} ₺
+                      <p className={`font-bold ${(item.amount || 0) > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        {(item.amount || 0) > 0 ? '+' : ''}{(item.amount || 0).toLocaleString('tr-TR')} ₺
                       </p>
                       <p className="text-xs text-slate-500">
                         {new Date(item.created_at || item.sale_date).toLocaleDateString('tr-TR')}

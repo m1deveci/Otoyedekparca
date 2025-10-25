@@ -175,12 +175,12 @@ export function TechnicalServicesTab() {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-600">
                   <span className="font-medium">Kredi Limiti:</span>
-                  <span>{service.credit_limit.toLocaleString('tr-TR')} ₺</span>
+                  <span>{(service.credit_limit || 0).toLocaleString('tr-TR')} ₺</span>
                 </div>
-                <div className={`flex items-center gap-2 text-sm p-2 rounded-lg ${getBalanceBgColor(service.current_balance)}`}>
+                <div className={`flex items-center gap-2 text-sm p-2 rounded-lg ${getBalanceBgColor(service.current_balance || 0)}`}>
                   <span className="font-medium">Mevcut Bakiye:</span>
-                  <span className={`font-semibold ${getBalanceColor(service.current_balance)}`}>
-                    {service.current_balance.toLocaleString('tr-TR')} ₺
+                  <span className={`font-semibold ${getBalanceColor(service.current_balance || 0)}`}>
+                    {(service.current_balance || 0).toLocaleString('tr-TR')} ₺
                   </span>
                 </div>
               </div>

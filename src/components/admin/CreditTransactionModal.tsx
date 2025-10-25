@@ -76,8 +76,8 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
             <div className="bg-slate-50 rounded-lg p-4 mb-6">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-slate-600">Mevcut Bakiye:</span>
-                <span className={`text-lg font-bold ${service.current_balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                  {service.current_balance.toLocaleString('tr-TR')} ₺
+                <span className={`text-lg font-bold ${(service.current_balance || 0) > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  {(service.current_balance || 0).toLocaleString('tr-TR')} ₺
                 </span>
               </div>
             </div>
