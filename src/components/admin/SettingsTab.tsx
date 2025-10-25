@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Settings, Save, DollarSign, Truck, CreditCard, AlertCircle } from 'lucide-react';
 import type { StoreSetting, PaymentMethod, ShippingMethod } from '../../types';
+import { apiClient } from '../../lib/api';
 
 export function SettingsTab() {
   const [activeSection, setActiveSection] = useState<'general' | 'payment' | 'shipping'>('general');

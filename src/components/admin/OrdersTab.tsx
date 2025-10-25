@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ShoppingBag, Eye } from 'lucide-react';
 import type { Order } from '../../types';
 import { OrderDetailsModal } from './OrderDetailsModal';
+import { apiClient } from '../../lib/api';
 
 export function OrdersTab() {
   const [orders, setOrders] = useState<Order[]>([]);

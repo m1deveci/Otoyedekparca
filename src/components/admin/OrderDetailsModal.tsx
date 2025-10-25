@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Order, OrderItem } from '../../types';
+import { apiClient } from '../../lib/api';
 
 interface OrderDetailsModalProps {
   order: Order;

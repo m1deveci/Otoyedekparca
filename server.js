@@ -206,6 +206,136 @@ app.put('/api/orders/:id/status', async (req, res) => {
   }
 });
 
+// Admin - Categories
+app.get('/api/admin/categories', async (req, res) => {
+  try {
+    const [rows] = await pool.execute('SELECT * FROM categories ORDER BY display_order');
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/admin/categories', async (req, res) => {
+  try {
+    const { name, slug, description, image_url, parent_id, display_order, is_active } = req.body;
+    const [result] = await pool.execute(
+      'INSERT INTO categories (name, slug, description, image_url, parent_id, display_order, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [name, slug, description, image_url, parent_id, display_order, is_active]
+    );
+    res.json({ id: result.insertId, ...req.body });
+  } catch (error) {
+    console.error('Error creating category:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/api/admin/categories/:id', async (req, res) => {
+  try {
+    const { name, slug, description, image_url, parent_id, display_order, is_active } = req.body;
+    await pool.execute(
+      'UPDATE categories SET name = ?, slug = ?, description = ?, image_url = ?, parent_id = ?, display_order = ?, is_active = ? WHERE id = ?',
+      [name, slug, description, image_url, parent_id, display_order, is_active, req.params.id]
+    );
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating category:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete('/api/admin/categories/:id', async (req, res) => {
+  try {
+    await pool.execute('DELETE FROM categories WHERE id = ?', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Admin - Products
+app.get('/api/admin/products', async (req, res) => {
+  try {
+    const [rows] = await pool.execute('SELECT * FROM products ORDER BY created_at DESC');
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/admin/products', async (req, res) => {
+  try {
+    const {
+      category_id, name, slug, description, short_description, sku, brand, price, sale_price,
+      stock_quantity, low_stock_threshold, image_url, images, specifications, is_featured, is_active
+    } = req.body;
+    
+    const [result] = await pool.execute(
+      'INSERT INTO products (category_id, name, slug, description, short_description, sku, brand, price, sale_price, stock_quantity, low_stock_threshold, image_url, images, specifications, is_featured, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [category_id, name, slug, description, short_description, sku, brand, price, sale_price, stock_quantity, low_stock_threshold, image_url, JSON.stringify(images), JSON.stringify(specifications), is_featured, is_active]
+    );
+    res.json({ id: result.insertId, ...req.body });
+  } catch (error) {
+    console.error('Error creating product:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/api/admin/products/:id', async (req, res) => {
+  try {
+    const {
+      category_id, name, slug, description, short_description, sku, brand, price, sale_price,
+      stock_quantity, low_stock_threshold, image_url, images, specifications, is_featured, is_active
+    } = req.body;
+    
+    await pool.execute(
+      'UPDATE products SET category_id = ?, name = ?, slug = ?, description = ?, short_description = ?, sku = ?, brand = ?, price = ?, sale_price = ?, stock_quantity = ?, low_stock_threshold = ?, image_url = ?, images = ?, specifications = ?, is_featured = ?, is_active = ? WHERE id = ?',
+      [category_id, name, slug, description, short_description, sku, brand, price, sale_price, stock_quantity, low_stock_threshold, image_url, JSON.stringify(images), JSON.stringify(specifications), is_featured, is_active, req.params.id]
+    );
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating product:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete('/api/admin/products/:id', async (req, res) => {
+  try {
+    await pool.execute('DELETE FROM products WHERE id = ?', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Admin - Dashboard
+app.get('/api/admin/dashboard', async (req, res) => {
+  try {
+    const [productsResult] = await pool.execute('SELECT COUNT(*) as total FROM products');
+    const [activeProductsResult] = await pool.execute('SELECT COUNT(*) as total FROM products WHERE is_active = 1');
+    const [ordersResult] = await pool.execute('SELECT COUNT(*) as total FROM orders');
+    const [revenueResult] = await pool.execute('SELECT SUM(total) as total FROM orders WHERE status != "cancelled"');
+    const [lowStockResult] = await pool.execute('SELECT COUNT(*) as total FROM products WHERE stock_quantity <= low_stock_threshold');
+    const [recentOrdersResult] = await pool.execute('SELECT * FROM orders ORDER BY created_at DESC LIMIT 5');
+    
+    res.json({
+      totalProducts: productsResult[0].total,
+      activeProducts: activeProductsResult[0].total,
+      totalOrders: ordersResult[0].total,
+      totalRevenue: revenueResult[0].total || 0,
+      lowStockProducts: lowStockResult[0].total,
+      recentOrders: recentOrdersResult
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });

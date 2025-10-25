@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Package } from 'lucide-react';
 import type { Product, Category } from '../../types';
 import { ProductForm } from './ProductForm';
+import { apiClient } from '../../lib/api';
 
 export function ProductsTab() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -17,13 +18,8 @@ export function ProductsTab() {
 
   const loadProducts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setProducts(data || []);
+      const data = await apiClient.getProducts();
+      setProducts(data);
     } catch (error) {
       console.error('Error loading products:', error);
     } finally {
@@ -33,13 +29,8 @@ export function ProductsTab() {
 
   const loadCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
-      setCategories(data || []);
+      const data = await apiClient.getCategories();
+      setCategories(data);
     } catch (error) {
       console.error('Error loading categories:', error);
     }
@@ -49,8 +40,7 @@ export function ProductsTab() {
     if (!confirm('Bu ürünü silmek istediğinize emin misiniz?')) return;
 
     try {
-      const { error } = await supabase.from('products').delete().eq('id', id);
-      if (error) throw error;
+      await apiClient.deleteProduct(parseInt(id));
       loadProducts();
     } catch (error) {
       console.error('Error deleting product:', error);

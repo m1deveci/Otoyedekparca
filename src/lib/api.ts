@@ -165,6 +165,85 @@ class ApiClient {
     });
   }
 
+  // Admin - Categories
+  async createCategory(categoryData: {
+    name: string;
+    slug: string;
+    description: string;
+    image_url: string;
+    parent_id?: number;
+    display_order: number;
+    is_active: boolean;
+  }): Promise<Category> {
+    return this.request<Category>('/admin/categories', {
+      method: 'POST',
+      body: JSON.stringify(categoryData),
+    });
+  }
+
+  async updateCategory(id: number, categoryData: Partial<Category>): Promise<Category> {
+    return this.request<Category>(`/admin/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(categoryData),
+    });
+  }
+
+  async deleteCategory(id: number): Promise<{ success: boolean }> {
+    return this.request<{ success: boolean }>(`/admin/categories/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Admin - Products
+  async createProduct(productData: {
+    category_id: number;
+    name: string;
+    slug: string;
+    description: string;
+    short_description: string;
+    sku: string;
+    brand: string;
+    price: number;
+    sale_price?: number;
+    stock_quantity: number;
+    low_stock_threshold: number;
+    image_url: string;
+    images?: string[];
+    specifications?: Record<string, any>;
+    is_featured: boolean;
+    is_active: boolean;
+  }): Promise<Product> {
+    return this.request<Product>('/admin/products', {
+      method: 'POST',
+      body: JSON.stringify(productData),
+    });
+  }
+
+  async updateProduct(id: number, productData: Partial<Product>): Promise<Product> {
+    return this.request<Product>(`/admin/products/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(productData),
+    });
+  }
+
+  async deleteProduct(id: number): Promise<{ success: boolean }> {
+    return this.request<{ success: boolean }>(`/admin/products/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Admin - Dashboard
+  async getDashboardStats(): Promise<{
+    totalProducts: number;
+    activeProducts: number;
+    totalOrders: number;
+    totalRevenue: number;
+    lowStockProducts: number;
+    recentOrders: Order[];
+  }> {
+    return this.request('/admin/dashboard');
+  }
+
   // Health check
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
     return this.request('/health');

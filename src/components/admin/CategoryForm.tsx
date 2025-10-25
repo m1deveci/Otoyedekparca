@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Category } from '../../types';
+import { apiClient } from '../../lib/api';
 
 interface CategoryFormProps {
   category: Category | null;
@@ -67,14 +68,9 @@ export function CategoryForm({ category, onClose }: CategoryFormProps) {
       };
 
       if (category) {
-        const { error } = await supabase
-          .from('categories')
-          .update(data)
-          .eq('id', category.id);
-        if (error) throw error;
+        await apiClient.updateCategory(category.id, data);
       } else {
-        const { error } = await supabase.from('categories').insert(data);
-        if (error) throw error;
+        await apiClient.createCategory(data);
       }
 
       onClose();

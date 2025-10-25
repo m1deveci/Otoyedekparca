@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Product, Category } from '../../types';
+import { apiClient } from '../../lib/api';
 
 interface ProductFormProps {
   product: Product | null;
@@ -92,14 +93,9 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
       };
 
       if (product) {
-        const { error } = await supabase
-          .from('products')
-          .update(data)
-          .eq('id', product.id);
-        if (error) throw error;
+        await apiClient.updateProduct(product.id, data);
       } else {
-        const { error } = await supabase.from('products').insert(data);
-        if (error) throw error;
+        await apiClient.createProduct(data);
       }
 
       onClose();
