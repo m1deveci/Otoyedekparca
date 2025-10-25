@@ -93,6 +93,16 @@ export function CreditSaleModal({ service, onClose }: CreditSaleModalProps) {
       }
     }
     
+    // Eğer cost_price yoksa ama category_id varsa, normal price üzerinden kar marjı hesapla
+    if (product.category_id && categories.length > 0) {
+      const category = categories.find(cat => cat.id === product.category_id);
+      const profitMargin = category?.profit_margin || 0;
+      if (profitMargin > 0 && product.price > 0) {
+        // Normal price'ı cost_price olarak kabul et ve kar marjı ekle
+        return product.price * (1 + profitMargin / 100);
+      }
+    }
+    
     // Fallback: normal price kullan
     return product.price || 0;
   };
