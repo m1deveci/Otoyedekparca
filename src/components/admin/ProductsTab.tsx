@@ -102,7 +102,7 @@ export function ProductsTab() {
   };
 
   const exportProducts = () => {
-    const headers = ['ID', 'Ürün Adı', 'SKU', 'Barkod', 'Kategori', 'Stok', 'Fiyat', 'Maliyet Fiyatı'];
+    const headers = ['ID', 'Ürün Adı', 'SKU', 'Barkod', 'Kategori', 'Alış Fiyatı', 'Satış Fiyatı', 'Stok'];
     const csvRows = [
       headers.join(';'),
       ...filteredProducts.map(product => [
@@ -111,9 +111,9 @@ export function ProductsTab() {
         product.sku || '',
         product.barcode || '',
         categories.find(c => c.id === product.category_id)?.name || '',
-        product.stock_quantity,
-        product.price,
-        product.cost_price || ''
+        product.cost_price || 0,
+        product.sale_price || product.price,
+        product.stock_quantity
       ].join(';'))
     ];
     const csvString = csvRows.join('\n');
@@ -347,7 +347,10 @@ export function ProductsTab() {
                     Barkod
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
-                    Fiyat
+                    Alış Fiyatı
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    Satış Fiyatı
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
                     Stok
@@ -389,6 +392,11 @@ export function ProductsTab() {
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">{product.sku || '-'}</td>
                     <td className="px-6 py-4 text-sm text-slate-600">{product.barcode || '-'}</td>
+                    <td className="px-6 py-4 text-sm">
+                      <div className="text-slate-900 font-semibold">
+                        {(product.cost_price || 0).toFixed(2)} ₺
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-sm">
                       {product.sale_price ? (
                         <div>
