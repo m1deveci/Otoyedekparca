@@ -34,6 +34,178 @@ pool.getConnection()
     console.error('Database connection failed:', err);
   });
 
+// Create tables if they don't exist
+const createTables = async () => {
+  try {
+    // Categories table
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) UNIQUE NOT NULL,
+        description TEXT,
+        image_url VARCHAR(500),
+        parent_id INT,
+        display_order INT DEFAULT 0,
+        is_active BOOLEAN DEFAULT TRUE,
+        profit_margin DECIMAL(5,2) DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL
+      )
+    `);
+
+    // Products table
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS products (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        category_id INT,
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) UNIQUE NOT NULL,
+        description TEXT,
+        short_description TEXT,
+        sku VARCHAR(100),
+        barcode VARCHAR(100),
+        brand VARCHAR(100),
+        cost_price DECIMAL(10,2),
+        price DECIMAL(10,2) NOT NULL,
+        sale_price DECIMAL(10,2),
+        stock_quantity INT DEFAULT 0,
+        low_stock_threshold INT DEFAULT 5,
+        image_url TEXT,
+        images JSON,
+        specifications JSON,
+        is_featured BOOLEAN DEFAULT FALSE,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
+      )
+    `);
+
+    // Orders table
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        customer_name VARCHAR(255) NOT NULL,
+        customer_email VARCHAR(255),
+        customer_phone VARCHAR(20),
+        customer_address TEXT,
+        total DECIMAL(10,2) NOT NULL,
+        status ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled') DEFAULT 'pending',
+        payment_method VARCHAR(50),
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Order items table
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS order_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        order_id INT NOT NULL,
+        product_id INT NOT NULL,
+        quantity INT NOT NULL,
+        price DECIMAL(10,2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Technical services table
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS technical_services (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        contact_person VARCHAR(255),
+        phone VARCHAR(20),
+        email VARCHAR(255),
+        address TEXT,
+        credit_limit DECIMAL(10,2) DEFAULT 0,
+        current_balance DECIMAL(10,2) DEFAULT 0,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Credit transactions table
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS credit_transactions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        technical_service_id INT NOT NULL,
+        transaction_type ENUM('payment', 'credit_sale') NOT NULL,
+        amount DECIMAL(10,2) NOT NULL,
+        description TEXT,
+        reference_number VARCHAR(100),
+        payment_method VARCHAR(50),
+        created_by VARCHAR(100),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (technical_service_id) REFERENCES technical_services(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Credit sales table
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS credit_sales (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        technical_service_id INT NOT NULL,
+        product_id INT NOT NULL,
+        quantity INT NOT NULL,
+        unit_price DECIMAL(10,2) NOT NULL,
+        total_price DECIMAL(10,2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (technical_service_id) REFERENCES technical_services(id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Technical service history table
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS technical_service_history (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        technical_service_id INT NOT NULL,
+        action_type VARCHAR(50) NOT NULL,
+        description TEXT,
+        amount DECIMAL(10,2),
+        previous_balance DECIMAL(10,2),
+        new_balance DECIMAL(10,2),
+        reference_number VARCHAR(100),
+        payment_method VARCHAR(50),
+        created_by VARCHAR(100),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (technical_service_id) REFERENCES technical_services(id) ON DELETE CASCADE
+      )
+    `);
+
+    // System logs table
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS system_logs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT,
+        action VARCHAR(50) NOT NULL,
+        entity_type VARCHAR(50) NOT NULL,
+        entity_id INT,
+        description TEXT,
+        old_values JSON,
+        new_values JSON,
+        ip_address VARCHAR(45),
+        user_agent TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    console.log('Tables created successfully');
+  } catch (error) {
+    console.error('Error creating tables:', error);
+  }
+};
+
+// Initialize tables
+createTables();
+
 // Routes
 
 // Get all categories
