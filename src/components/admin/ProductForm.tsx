@@ -34,6 +34,8 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
   const [showBrandForm, setShowBrandForm] = useState(false);
   const [newBrand, setNewBrand] = useState('');
   const [autoGenerateSku, setAutoGenerateSku] = useState(true);
+  const [brands, setBrands] = useState<string[]>([]);
+  const [loadingBrands, setLoadingBrands] = useState(false);
 
   useEffect(() => {
     if (product) {
@@ -60,6 +62,10 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
       }
     }
   }, [product]);
+
+  useEffect(() => {
+    loadBrands();
+  }, []);
 
   const generateSlug = (name: string) => {
     return name
@@ -118,10 +124,28 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
     });
   };
 
+  const loadBrands = async () => {
+    try {
+      setLoadingBrands(true);
+      const products = await apiClient.getProducts();
+      const uniqueBrands = [...new Set(products.map(p => p.brand).filter(brand => brand && brand.trim()))];
+      setBrands(uniqueBrands.sort());
+    } catch (error) {
+      console.error('Error loading brands:', error);
+    } finally {
+      setLoadingBrands(false);
+    }
+  };
+
   const handleAddBrand = async () => {
     if (newBrand.trim()) {
       const brandName = newBrand.trim();
       setFormData({ ...formData, brand: brandName });
+      
+      // Yeni markayı listeye ekle
+      if (!brands.includes(brandName)) {
+        setBrands(prev => [...prev, brandName].sort());
+      }
       
       // Otomatik SKU oluştur
       if (autoGenerateSku) {
@@ -318,13 +342,19 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
                     Marka
                   </label>
                   <div className="flex gap-2">
-                    <input
-                      type="text"
+                    <select
                       value={formData.brand}
                       onChange={(e) => handleBrandChange(e.target.value)}
                       className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      placeholder="Marka adını girin"
-                    />
+                      disabled={loadingBrands}
+                    >
+                      <option value="">Marka seçin</option>
+                      {brands.map(brand => (
+                        <option key={brand} value={brand}>
+                          {brand}
+                        </option>
+                      ))}
+                    </select>
                     <button
                       type="button"
                       onClick={() => setShowBrandForm(!showBrandForm)}
