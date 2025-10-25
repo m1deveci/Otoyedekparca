@@ -35,37 +35,42 @@ export function TechnicalServicesTab() {
 
   const loadServices = async () => {
     try {
-      // TODO: API endpoint'i implement et
-      // Şimdilik mock data
-      const mockServices: TechnicalService[] = [
-        {
-          id: 1,
-          name: 'Ahmet Oto Servis',
-          contact_person: 'Ahmet Yılmaz',
-          phone: '+90 555 123 4567',
-          email: 'ahmet@otoservis.com',
-          address: 'İstanbul, Türkiye',
-          tax_number: '1234567890',
-          credit_limit: 50000,
-          current_balance: 15000,
-          is_active: true,
-          created_at: '2024-01-15'
-        },
-        {
-          id: 2,
-          name: 'Mehmet Teknik Servis',
-          contact_person: 'Mehmet Demir',
-          phone: '+90 555 987 6543',
-          email: 'mehmet@teknik.com',
-          address: 'Ankara, Türkiye',
-          tax_number: '0987654321',
-          credit_limit: 30000,
-          current_balance: 8000,
-          is_active: true,
-          created_at: '2024-01-20'
-        }
-      ];
-      setServices(mockServices);
+      const response = await fetch('/api/admin/technical-services');
+      if (response.ok) {
+        const data = await response.json();
+        setServices(data);
+      } else {
+        // Fallback to mock data if API fails
+        const mockServices: TechnicalService[] = [
+          {
+            id: 1,
+            name: 'Ahmet Oto Servis',
+            contact_person: 'Ahmet Yılmaz',
+            phone: '+90 555 123 4567',
+            email: 'ahmet@otoservis.com',
+            address: 'İstanbul, Türkiye',
+            tax_number: '1234567890',
+            credit_limit: 50000,
+            current_balance: 15000,
+            is_active: true,
+            created_at: '2024-01-15'
+          },
+          {
+            id: 2,
+            name: 'Mehmet Teknik Servis',
+            contact_person: 'Mehmet Demir',
+            phone: '+90 555 987 6543',
+            email: 'mehmet@teknik.com',
+            address: 'Ankara, Türkiye',
+            tax_number: '0987654321',
+            credit_limit: 30000,
+            current_balance: 8000,
+            is_active: true,
+            created_at: '2024-01-20'
+          }
+        ];
+        setServices(mockServices);
+      }
     } catch (error) {
       console.error('Error loading technical services:', error);
     } finally {

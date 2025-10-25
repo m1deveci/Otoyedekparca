@@ -21,32 +21,66 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
     reference_number: '',
     payment_method: 'cash',
   });
+  const [useFullBalance, setUseFullBalance] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      let amount = parseFloat(formData.amount);
+      
+      // Ödeme türü için kontrol
+      if (transactionType === 'payment') {
+        // Ödeme yapılıyorsa, mevcut bakiyeden fazla ödeme yapılamaz
+        const currentBalance = service.current_balance || 0;
+        if (amount > currentBalance) {
+          alert(`Ödeme tutarı mevcut bakiyeden (${currentBalance.toLocaleString('tr-TR')} ₺) fazla olamaz!`);
+          setLoading(false);
+          return;
+        }
+        // Ödeme tutarını negatif yap (bakiye azaltmak için)
+        amount = -amount;
+      }
+
       const data = {
         technical_service_id: service.id,
         transaction_type: transactionType,
-        amount: parseFloat(formData.amount),
+        amount: amount,
         description: formData.description,
         reference_number: formData.reference_number,
         payment_method: formData.payment_method,
         created_by: 'Admin', // TODO: Get from auth context
       };
 
-      // TODO: API endpoint'i implement et
-      console.log('Credit transaction:', data);
-      
-      alert('İşlem başarıyla kaydedildi!');
-      onClose();
+      const response = await fetch(`/api/admin/technical-services/${service.id}/transactions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        alert('İşlem başarıyla kaydedildi!');
+        onClose();
+      } else {
+        throw new Error('API request failed');
+      }
     } catch (error) {
       console.error('Error saving transaction:', error);
       alert('İşlem kaydedilirken bir hata oluştu.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFullBalanceToggle = () => {
+    setUseFullBalance(!useFullBalance);
+    if (!useFullBalance) {
+      setFormData({ ...formData, amount: (service.current_balance || 0).toString() });
+    } else {
+      setFormData({ ...formData, amount: '' });
     }
   };
 
@@ -129,16 +163,37 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Tutar (₺) *
                 </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  required
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  placeholder="0.00"
-                />
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="useFullBalance"
+                      checked={useFullBalance}
+                      onChange={handleFullBalanceToggle}
+                      className="w-4 h-4 text-orange-600 border-slate-300 rounded focus:ring-orange-500"
+                    />
+                    <label htmlFor="useFullBalance" className="text-sm font-medium text-slate-700">
+                      Tüm bakiyeyi kapat ({(service.current_balance || 0).toLocaleString('tr-TR')} ₺)
+                    </label>
+                  </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max={transactionType === 'payment' ? (service.current_balance || 0) : undefined}
+                    required
+                    value={formData.amount}
+                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="0.00"
+                    disabled={useFullBalance}
+                  />
+                  {transactionType === 'payment' && (service.current_balance || 0) > 0 && (
+                    <p className="text-xs text-slate-500">
+                      Maksimum ödeme: {(service.current_balance || 0).toLocaleString('tr-TR')} ₺
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Description */}
