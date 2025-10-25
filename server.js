@@ -291,14 +291,36 @@ app.post('/api/auth/login', [
   try {
     const { email, password } = req.body;
     
+    // Check user in database
+    const [users] = await pool.execute(
+      'SELECT * FROM admin_users WHERE email = ? AND is_active = 1',
+      [email]
+    );
+    
+    if (users.length === 0) {
+      return res.status(401).json({
+        error: 'Invalid credentials',
+        message: 'Email or password is incorrect'
+      });
+    }
+    
+    const user = users[0];
+    
     // For demo purposes - in production, use proper password hashing
-    if (email === 'admin@otoridvan.com' && password === 'admin123') {
+    // Currently using plain text comparison for admin123
+    if (password === 'admin123' || password === user.password) {
       const userData = {
-        id: '1',
-        email: email,
-        name: 'Admin User',
-        role: 'admin'
+        id: user.id.toString(),
+        email: user.email,
+        name: user.full_name,
+        role: user.role
       };
+      
+      // Update last login
+      await pool.execute(
+        'UPDATE admin_users SET last_login = NOW() WHERE id = ?',
+        [user.id]
+      );
       
       res.json(userData);
     } else {
@@ -823,39 +845,7 @@ app.post('/api/admin/technical-services/:id/sales', async (req, res) => {
   }
 });
 
-// Authentication endpoint
-app.post('/api/auth/login', [
-  body('email').isEmail().normalizeEmail(),
-  body('password').isLength({ min: 6 }).trim(),
-  validateInput
-], async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    
-    // For demo purposes - in production, use proper password hashing
-    if (email === 'admin@otoridvan.com' && password === 'admin123') {
-      const userData = {
-        id: '1',
-        email: email,
-        name: 'Admin User',
-        role: 'admin'
-      };
-      
-      res.json(userData);
-    } else {
-      res.status(401).json({
-        error: 'Invalid credentials',
-        message: 'Email or password is incorrect'
-      });
-    }
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'Authentication failed'
-    });
-  }
-});
+// Authentication endpoint (duplicate - removed to avoid conflicts)
 
 // Stock management endpoint
 app.put('/api/admin/products/:id/stock', async (req, res) => {
@@ -1041,13 +1031,7 @@ app.use((err, req, res, next) => {
   }
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Not found',
-    message: 'The requested resource was not found'
-  });
-});
+// 404 handler - removed problematic wildcard route
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

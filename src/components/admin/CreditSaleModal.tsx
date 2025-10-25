@@ -327,14 +327,44 @@ export function CreditSaleModal({ service, onClose }: CreditSaleModalProps) {
                     <option value="">Ürün seçin</option>
                     {products.map((product) => (
                       <option key={product.id} value={product.id}>
-                        {product.name} - {product.brand} ({product.sku})
+                        {product.name} - {product.brand} ({product.sku}) {product.stock_quantity > 0 ? `[Stok: ${product.stock_quantity}]` : '[STOK YOK!]'}
                       </option>
                     ))}
                   </select>
                   {selectedProduct && (
-                    <div className="mt-2 text-sm text-slate-600">
-                      <p>Stok: {selectedProduct.stock_quantity} adet</p>
-                      <p>Birim Fiyat: {calculateProductPrice(selectedProduct).toLocaleString('tr-TR')} ₺</p>
+                    <div className="mt-2 p-3 rounded-lg border">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-slate-700">Stok Durumu:</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          selectedProduct.stock_quantity > 10 
+                            ? 'bg-green-100 text-green-800' 
+                            : selectedProduct.stock_quantity > 0 
+                            ? 'bg-yellow-100 text-yellow-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {selectedProduct.stock_quantity > 0 
+                            ? `${selectedProduct.stock_quantity} adet mevcut` 
+                            : 'STOK YOK!'
+                          }
+                        </span>
+                      </div>
+                      {selectedProduct.stock_quantity === 0 && (
+                        <div className="p-2 bg-red-50 border border-red-200 rounded-lg mb-2">
+                          <p className="text-sm text-red-600 font-medium">
+                            ⚠️ Bu ürün stokta bulunmamaktadır!
+                          </p>
+                        </div>
+                      )}
+                      {selectedProduct.stock_quantity > 0 && selectedProduct.stock_quantity <= 5 && (
+                        <div className="p-2 bg-yellow-50 border border-yellow-200 rounded-lg mb-2">
+                          <p className="text-sm text-yellow-600 font-medium">
+                            ⚠️ Stok azalıyor! Sadece {selectedProduct.stock_quantity} adet kaldı.
+                          </p>
+                        </div>
+                      )}
+                      <p className="text-sm text-slate-600">
+                        Birim Fiyat: {calculateProductPrice(selectedProduct).toLocaleString('tr-TR')} ₺
+                      </p>
                     </div>
                   )}
                 </div>
@@ -350,7 +380,8 @@ export function CreditSaleModal({ service, onClose }: CreditSaleModalProps) {
                     max={selectedProduct?.stock_quantity || 1}
                     value={quantity}
                     onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    disabled={selectedProduct?.stock_quantity === 0}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-slate-100 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -359,10 +390,10 @@ export function CreditSaleModal({ service, onClose }: CreditSaleModalProps) {
                   <button
                     type="button"
                     onClick={addToCart}
-                    disabled={!selectedProduct || quantity <= 0}
+                    disabled={!selectedProduct || quantity <= 0 || selectedProduct?.stock_quantity === 0}
                     className="w-full px-4 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed"
                   >
-                    Sepete Ekle
+                    {selectedProduct?.stock_quantity === 0 ? 'Stok Yok!' : 'Sepete Ekle'}
                   </button>
                 </div>
               </div>
