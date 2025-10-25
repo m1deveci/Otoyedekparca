@@ -385,6 +385,13 @@ app.post('/api/admin/technical-services', async (req, res) => {
       'INSERT INTO technical_services (name, contact_person, phone, email, address, tax_number, credit_limit, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
       [name, contact_person, phone, email, address, tax_number, credit_limit, is_active]
     );
+    
+    // History kaydı ekle
+    await pool.execute(
+      'INSERT INTO technical_service_history (technical_service_id, action_type, description, amount, previous_balance, new_balance, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [result.insertId, 'created', `Teknik servis oluşturuldu: ${name}`, 0, 0, 0, 'admin']
+    );
+    
     res.json({ id: result.insertId, ...req.body });
   } catch (error) {
     console.error('Error creating technical service:', error);
@@ -400,6 +407,13 @@ app.put('/api/admin/technical-services/:id', async (req, res) => {
       'UPDATE technical_services SET name = ?, contact_person = ?, phone = ?, email = ?, address = ?, tax_number = ?, credit_limit = ?, is_active = ? WHERE id = ?',
       [name, contact_person, phone, email, address, tax_number, credit_limit, is_active, req.params.id]
     );
+    
+    // History kaydı ekle
+    await pool.execute(
+      'INSERT INTO technical_service_history (technical_service_id, action_type, description, amount, previous_balance, new_balance, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [req.params.id, 'updated', `Teknik servis güncellendi: ${name}`, 0, 0, 0, 'admin']
+    );
+    
     res.json({ success: true });
   } catch (error) {
     console.error('Error updating technical service:', error);
@@ -409,6 +423,17 @@ app.put('/api/admin/technical-services/:id', async (req, res) => {
 
 app.delete('/api/admin/technical-services/:id', async (req, res) => {
   try {
+    // Önce teknik servis bilgilerini al
+    const [service] = await pool.execute('SELECT name FROM technical_services WHERE id = ?', [req.params.id]);
+    
+    // History kaydı ekle
+    if (service.length > 0) {
+      await pool.execute(
+        'INSERT INTO technical_service_history (technical_service_id, action_type, description, amount, previous_balance, new_balance, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [req.params.id, 'deleted', `Teknik servis silindi: ${service[0].name}`, 0, 0, 0, 'admin']
+      );
+    }
+    
     await pool.execute('DELETE FROM technical_services WHERE id = ?', [req.params.id]);
     res.json({ success: true });
   } catch (error) {
@@ -444,6 +469,16 @@ app.post('/api/admin/technical-services/:id/transactions', async (req, res) => {
     await pool.execute(
       'UPDATE technical_services SET current_balance = current_balance + ? WHERE id = ?',
       [amount, req.params.id]
+    );
+    
+    // History kaydı ekle
+    const [currentService] = await pool.execute('SELECT current_balance FROM technical_services WHERE id = ?', [req.params.id]);
+    const previousBalance = (currentService[0]?.current_balance || 0) - amount;
+    const newBalance = currentService[0]?.current_balance || 0;
+    
+    await pool.execute(
+      'INSERT INTO technical_service_history (technical_service_id, action_type, description, amount, previous_balance, new_balance, reference_number, payment_method, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [req.params.id, 'payment', description, amount, previousBalance, newBalance, reference_number, payment_method, created_by]
     );
     
     res.json({ id: result.insertId, ...req.body });
@@ -485,6 +520,16 @@ app.post('/api/admin/technical-services/:id/sales', async (req, res) => {
       [total_amount, req.params.id]
     );
     
+    // History kaydı ekle
+    const [currentService] = await pool.execute('SELECT current_balance FROM technical_services WHERE id = ?', [req.params.id]);
+    const previousBalance = (currentService[0]?.current_balance || 0) - total_amount;
+    const newBalance = currentService[0]?.current_balance || 0;
+    
+    await pool.execute(
+      'INSERT INTO technical_service_history (technical_service_id, action_type, description, amount, previous_balance, new_balance, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [req.params.id, 'credit_sale', `Veresiye satış: ${quantity} adet ürün - ${total_amount} TL`, total_amount, previousBalance, newBalance, 'admin']
+    );
+    
     res.json({ id: result.insertId, ...req.body });
   } catch (error) {
     console.error('Error creating credit sale:', error);
@@ -495,6 +540,36 @@ app.post('/api/admin/technical-services/:id/sales', async (req, res) => {
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Technical service history endpoints
+app.get('/api/admin/technical-services/:id/history', async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      'SELECT * FROM technical_service_history WHERE technical_service_id = ? ORDER BY created_at DESC',
+      [req.params.id]
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching technical service history:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/admin/technical-services/:id/history', async (req, res) => {
+  try {
+    const { action_type, description, amount, previous_balance, new_balance, reference_number, payment_method, created_by } = req.body;
+    
+    const [result] = await pool.execute(
+      'INSERT INTO technical_service_history (technical_service_id, action_type, description, amount, previous_balance, new_balance, reference_number, payment_method, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [req.params.id, action_type, description, amount, previous_balance, new_balance, reference_number, payment_method, created_by]
+    );
+    
+    res.json({ id: result.insertId, ...req.body });
+  } catch (error) {
+    console.error('Error creating technical service history:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Start server

@@ -51,54 +51,49 @@ export function CreditHistoryModal({ service, onClose }: CreditHistoryModalProps
     try {
       setLoading(true);
       
-      // TODO: API endpoint'i implement et
-      // Şimdilik mock data
-      const mockTransactions: CreditTransaction[] = [
-        {
-          id: 1,
-          transaction_type: 'payment',
-          amount: 5000,
-          description: 'Nakit ödeme',
-          reference_number: 'PAY-001',
-          payment_method: 'cash',
-          created_by: 'Admin',
-          created_at: '2024-01-20 14:30:00'
-        },
-        {
-          id: 2,
-          transaction_type: 'adjustment',
-          amount: -1000,
-          description: 'Bakiye düzeltmesi',
-          reference_number: 'ADJ-001',
-          payment_method: 'cash',
-          created_by: 'Admin',
-          created_at: '2024-01-18 10:15:00'
-        }
-      ];
+      console.log('Loading history for service:', service.id);
+      const response = await fetch(`/api/admin/technical-services/${service.id}/history`);
+      console.log('History API response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Loaded history data:', data);
+        
+        // History verilerini işle
+        const transactions = data.filter((item: any) => 
+          item.action_type === 'payment' || item.action_type === 'credit_sale'
+        ).map((item: any) => ({
+          id: item.id,
+          transaction_type: item.action_type === 'payment' ? 'payment' : 'sale',
+          amount: item.action_type === 'payment' ? -Math.abs(item.amount) : item.amount,
+          description: item.description,
+          reference_number: item.reference_number || '',
+          payment_method: item.payment_method || 'cash',
+          created_by: item.created_by,
+          created_at: item.created_at
+        }));
 
-      const mockSales: CreditSale[] = [
-        {
-          id: 1,
-          product_name: 'Motor Yağı 5W-30',
-          quantity: 10,
-          unit_price: 150,
-          total_amount: 1500,
-          sale_date: '2024-01-15',
-          notes: 'Veresiye satış'
-        },
-        {
-          id: 2,
-          product_name: 'Hava Filtresi',
-          quantity: 5,
-          unit_price: 50,
-          total_amount: 250,
-          sale_date: '2024-01-10',
-          notes: 'Veresiye satış'
-        }
-      ];
+        const sales = data.filter((item: any) => 
+          item.action_type === 'credit_sale'
+        ).map((item: any) => ({
+          id: item.id,
+          product_name: 'Ürün Satışı', // Bu bilgiyi product_id'den alabiliriz
+          quantity: 1, // Bu bilgiyi description'dan parse edebiliriz
+          unit_price: item.amount,
+          total_amount: item.amount,
+          sale_date: item.created_at.split('T')[0],
+          notes: item.description
+        }));
 
-      setTransactions(mockTransactions);
-      setSales(mockSales);
+        setTransactions(transactions);
+        setSales(sales);
+      } else {
+        console.error('Failed to load history');
+        // Fallback to empty arrays
+        setTransactions([]);
+        setSales([]);
+      }
+
     } catch (error) {
       console.error('Error loading history:', error);
     } finally {
