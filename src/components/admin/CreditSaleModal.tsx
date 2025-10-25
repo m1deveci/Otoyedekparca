@@ -84,14 +84,17 @@ export function CreditSaleModal({ service, onClose }: CreditSaleModalProps) {
   };
 
   const calculateProductPrice = (product: Product) => {
-    if (product.cost_price && product.category_id) {
+    // Eğer cost_price ve category_id varsa kar marjı hesapla
+    if (product.cost_price && product.cost_price > 0 && product.category_id && categories.length > 0) {
       const category = categories.find(cat => cat.id === product.category_id);
       const profitMargin = category?.profit_margin || 0;
       if (profitMargin > 0) {
         return product.cost_price * (1 + profitMargin / 100);
       }
     }
-    return product.price;
+    
+    // Fallback: normal price kullan
+    return product.price || 0;
   };
 
   const addToCart = () => {
