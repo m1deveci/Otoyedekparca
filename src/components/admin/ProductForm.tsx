@@ -1,4 +1,4 @@
-import { X, Upload, Trash2, Calculator } from 'lucide-react';
+import { X, Upload, Trash2, Calculator, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Product, Category } from '../../types';
 import { apiClient } from '../../lib/api';
@@ -31,6 +31,8 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
   });
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [showBrandForm, setShowBrandForm] = useState(false);
+  const [newBrand, setNewBrand] = useState('');
 
   useEffect(() => {
     if (product) {
@@ -113,6 +115,14 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
       name,
       slug: generateSlug(name),
     });
+  };
+
+  const handleAddBrand = () => {
+    if (newBrand.trim()) {
+      setFormData({ ...formData, brand: newBrand.trim() });
+      setNewBrand('');
+      setShowBrandForm(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -229,12 +239,55 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Marka
                   </label>
-                  <input
-                    type="text"
-                    value={formData.brand}
-                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={formData.brand}
+                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                      className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="Marka adını girin"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowBrandForm(!showBrandForm)}
+                      className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-1"
+                      title="Hızlı marka ekleme"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  {showBrandForm && (
+                    <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newBrand}
+                          onChange={(e) => setNewBrand(e.target.value)}
+                          className="flex-1 px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Yeni marka adı"
+                          onKeyPress={(e) => e.key === 'Enter' && handleAddBrand()}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddBrand}
+                          className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                        >
+                          Ekle
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowBrandForm(false);
+                            setNewBrand('');
+                          }}
+                          className="px-3 py-2 bg-slate-500 text-white rounded-lg hover:bg-slate-600 transition-colors"
+                        >
+                          İptal
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>
