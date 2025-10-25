@@ -86,7 +86,10 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
       setSelectedImage(file);
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
+        const result = e.target?.result as string;
+        setImagePreview(result);
+        // FormData'ya da kaydet
+        setFormData(prev => ({ ...prev, image_url: result }));
       };
       reader.readAsDataURL(file);
     }
@@ -539,7 +542,15 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
                     <input
                       type="url"
                       value={formData.image_url}
-                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                      onChange={(e) => {
+                        const url = e.target.value;
+                        setFormData({ ...formData, image_url: url });
+                        if (url) {
+                          setImagePreview(url);
+                        } else {
+                          setImagePreview('');
+                        }
+                      }}
                       placeholder="Veya resim URL'si girin"
                       className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                     />
