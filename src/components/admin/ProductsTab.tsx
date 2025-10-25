@@ -440,22 +440,22 @@ export function ProductsTab() {
                     <td className="px-6 py-4 text-sm text-slate-600">{product.barcode || '-'}</td>
                     <td className="px-6 py-4 text-sm">
                       <div className="text-slate-900 font-semibold">
-                        {(product.cost_price || 0).toFixed(2)} ₺
+                        {parseFloat(product.cost_price || 0).toFixed(2)} ₺
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm">
                       {product.sale_price ? (
                         <div>
                           <div className="text-slate-900 font-semibold">
-                            {product.sale_price.toFixed(2)} ₺
+                            {parseFloat(product.sale_price).toFixed(2)} ₺
                           </div>
                           <div className="text-xs text-slate-400 line-through">
-                            {product.price.toFixed(2)} ₺
+                            {parseFloat(product.price).toFixed(2)} ₺
                           </div>
                         </div>
                       ) : (
                         <div className="text-slate-900 font-semibold">
-                          {product.price.toFixed(2)} ₺
+                          {parseFloat(product.price).toFixed(2)} ₺
                         </div>
                       )}
                     </td>
