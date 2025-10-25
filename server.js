@@ -773,9 +773,9 @@ app.post('/api/admin/technical-services/:id/transactions', async (req, res) => {
       [req.params.id, transaction_type, amount, description, reference_number, payment_method, created_by]
     );
     
-    // Update current balance
+    // Update current balance - ensure it doesn't go below 0
     await pool.execute(
-      'UPDATE technical_services SET current_balance = current_balance + ? WHERE id = ?',
+      'UPDATE technical_services SET current_balance = GREATEST(0, current_balance + ?) WHERE id = ?',
       [amount, req.params.id]
     );
     
@@ -822,9 +822,9 @@ app.post('/api/admin/technical-services/:id/sales', async (req, res) => {
       [req.params.id, product_id, quantity, unit_price, total_amount, sale_date, notes]
     );
     
-    // Update current balance
+    // Update current balance - ensure it doesn't go below 0
     await pool.execute(
-      'UPDATE technical_services SET current_balance = current_balance + ? WHERE id = ?',
+      'UPDATE technical_services SET current_balance = GREATEST(0, current_balance + ?) WHERE id = ?',
       [total_amount, req.params.id]
     );
     
