@@ -133,6 +133,7 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
       const products = await apiClient.getProducts();
       const uniqueBrands = [...new Set(products.map(p => p.brand).filter(brand => brand && brand.trim()))];
       setBrands(uniqueBrands.sort());
+      console.log('Loaded brands:', uniqueBrands); // Debug için
     } catch (error) {
       console.error('Error loading brands:', error);
     } finally {
@@ -160,6 +161,11 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
       
       setNewBrand('');
       setShowBrandForm(false);
+      
+      // Markaları yeniden yükle (güncel veri için)
+      setTimeout(() => {
+        loadBrands();
+      }, 1000);
     }
   };
 
