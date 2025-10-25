@@ -1,4 +1,4 @@
-import { ShoppingCart, User, Search, Menu, X, Heart, Phone, Mail, MapPin } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, X, Heart, Phone, Mail, MapPin, LogOut, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -8,17 +8,24 @@ interface HeaderProps {
   onLoginClick: () => void;
   onAdminClick: () => void;
   onSearch: (query: string) => void;
+  onProfileClick: () => void;
 }
 
-export function Header({ onCartClick, onLoginClick, onAdminClick, onSearch }: HeaderProps) {
+export function Header({ onCartClick, onLoginClick, onAdminClick, onSearch, onProfileClick }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { getCartCount } = useCart();
-  const { isAdmin } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     onSearch(searchQuery);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    setUserMenuOpen(false);
   };
 
   return (
@@ -42,13 +49,27 @@ export function Header({ onCartClick, onLoginClick, onAdminClick, onSearch }: He
               </div>
             </div>
             <div className="flex items-center gap-4 text-sm">
-              <span>Hızlı ve güvenli alışverişe giriş yapın!</span>
-              <button
-                onClick={onLoginClick}
-                className="text-orange-400 hover:text-orange-300 transition-colors"
-              >
-                Giriş Yap
-              </button>
+              {user ? (
+                <div className="flex items-center gap-4">
+                  <span>Hoş geldiniz, {user.name}</span>
+                  <button
+                    onClick={handleSignOut}
+                    className="text-orange-400 hover:text-orange-300 transition-colors"
+                  >
+                    Oturumu Kapat
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <span>Hızlı ve güvenli alışverişe giriş yapın!</span>
+                  <button
+                    onClick={onLoginClick}
+                    className="text-orange-400 hover:text-orange-300 transition-colors"
+                  >
+                    Giriş Yap
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -100,10 +121,44 @@ export function Header({ onCartClick, onLoginClick, onAdminClick, onSearch }: He
                   <span>Admin Panel</span>
                 </button>
               )}
-              <button className="flex items-center gap-2 px-4 py-2 hover:bg-slate-50 rounded-lg transition-colors text-slate-700">
-                <Heart className="w-5 h-5" />
-                <span className="hidden lg:inline">Favorilerim</span>
-              </button>
+              {user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-slate-50 rounded-lg transition-colors text-slate-700"
+                  >
+                    <User className="w-5 h-5" />
+                    <span className="hidden lg:inline">{user.name}</span>
+                  </button>
+                  
+                  {userMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
+                      <button
+                        onClick={() => {
+                          onProfileClick();
+                          setUserMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-slate-50 text-slate-700"
+                      >
+                        <Settings className="w-4 h-4" />
+                        <span>Profil Ayarları</span>
+                      </button>
+                      <button
+                        onClick={handleSignOut}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-slate-50 text-slate-700"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Oturumu Kapat</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button className="flex items-center gap-2 px-4 py-2 hover:bg-slate-50 rounded-lg transition-colors text-slate-700">
+                  <Heart className="w-5 h-5" />
+                  <span className="hidden lg:inline">Favorilerim</span>
+                </button>
+              )}
               <button
                 onClick={onCartClick}
                 className="relative flex items-center gap-2 px-4 py-2 hover:bg-slate-50 rounded-lg transition-colors text-slate-700"
@@ -155,16 +210,41 @@ export function Header({ onCartClick, onLoginClick, onAdminClick, onSearch }: He
                     <span>Admin Panel</span>
                   </button>
                 )}
-                <button
-                  onClick={() => {
-                    onLoginClick();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex items-center gap-2 px-4 py-3 hover:bg-slate-50 rounded-lg transition-colors text-slate-700"
-                >
-                  <User className="w-5 h-5" />
-                  <span>Giriş Yap</span>
-                </button>
+                {user ? (
+                  <>
+                    <button
+                      onClick={() => {
+                        onProfileClick();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="flex items-center gap-2 px-4 py-3 hover:bg-slate-50 rounded-lg transition-colors text-slate-700"
+                    >
+                      <Settings className="w-5 h-5" />
+                      <span>Profil Ayarları</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleSignOut();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="flex items-center gap-2 px-4 py-3 hover:bg-slate-50 rounded-lg transition-colors text-slate-700"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      <span>Oturumu Kapat</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => {
+                      onLoginClick();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="flex items-center gap-2 px-4 py-3 hover:bg-slate-50 rounded-lg transition-colors text-slate-700"
+                  >
+                    <User className="w-5 h-5" />
+                    <span>Giriş Yap</span>
+                  </button>
+                )}
                 <button className="flex items-center gap-2 px-4 py-3 hover:bg-slate-50 rounded-lg transition-colors text-slate-700">
                   <Heart className="w-5 h-5" />
                   <span>Favorilerim</span>

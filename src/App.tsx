@@ -6,6 +6,7 @@ import { ProductCard } from './components/ProductCard';
 import { CartDrawer } from './components/CartDrawer';
 import { CheckoutModal } from './components/CheckoutModal';
 import { LoginModal } from './components/LoginModal';
+import { ProfileModal } from './components/ProfileModal';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { CartProvider, useCart } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -23,6 +24,7 @@ function AppContent() {
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
 
   const { isAdmin, loading: authLoading } = useAuth();
@@ -102,6 +104,7 @@ function AppContent() {
         onCartClick={() => setCartOpen(true)}
         onLoginClick={() => setLoginOpen(true)}
         onAdminClick={() => setAdminOpen(true)}
+        onProfileClick={() => setProfileOpen(true)}
         onSearch={setSearchQuery}
       />
 
@@ -333,6 +336,11 @@ function AppContent() {
           setLoginOpen(false);
           navigate('/admin');
         }}
+      />
+
+      <ProfileModal 
+        isOpen={profileOpen} 
+        onClose={() => setProfileOpen(false)}
       />
 
       {isAdmin && <AdminPanel isOpen={adminOpen} onClose={() => setAdminOpen(false)} />}
