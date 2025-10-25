@@ -13,6 +13,7 @@ interface CreditTransaction {
   amount: number;
   description: string;
   reference_number: string;
+  payment_method: 'cash' | 'credit_card' | 'bank_transfer' | 'check';
   created_by: string;
   created_at: string;
 }
@@ -59,6 +60,7 @@ export function CreditHistoryModal({ service, onClose }: CreditHistoryModalProps
           amount: 5000,
           description: 'Nakit ödeme',
           reference_number: 'PAY-001',
+          payment_method: 'cash',
           created_by: 'Admin',
           created_at: '2024-01-20 14:30:00'
         },
@@ -68,6 +70,7 @@ export function CreditHistoryModal({ service, onClose }: CreditHistoryModalProps
           amount: -1000,
           description: 'Bakiye düzeltmesi',
           reference_number: 'ADJ-001',
+          payment_method: 'cash',
           created_by: 'Admin',
           created_at: '2024-01-18 10:15:00'
         }
@@ -280,12 +283,25 @@ export function CreditHistoryModal({ service, onClose }: CreditHistoryModalProps
                     </div>
                   </div>
                   
-                  {item.reference_number && (
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                      <span>Ref:</span>
-                      <span>{item.reference_number}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-4 text-xs text-slate-500">
+                    {item.reference_number && (
+                      <div className="flex items-center gap-1">
+                        <span>Ref:</span>
+                        <span>{item.reference_number}</span>
+                      </div>
+                    )}
+                    {item.payment_method && (
+                      <div className="flex items-center gap-1">
+                        <span>Ödeme:</span>
+                        <span className="capitalize">
+                          {item.payment_method === 'cash' ? 'Nakit' :
+                           item.payment_method === 'credit_card' ? 'Kredi Kartı' :
+                           item.payment_method === 'bank_transfer' ? 'Havale/EFT' :
+                           item.payment_method === 'check' ? 'Çek' : item.payment_method}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                   
                   {item.notes && (
                     <p className="text-xs text-slate-600 mt-2">{item.notes}</p>

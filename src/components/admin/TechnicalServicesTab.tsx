@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Building2, CreditCard, History, DollarSign } from 'lucide-react';
+import { Plus, Edit, Trash2, Building2, CreditCard, History, DollarSign, ShoppingCart } from 'lucide-react';
 import { TechnicalServiceForm } from './TechnicalServiceForm';
 import { CreditTransactionModal } from './CreditTransactionModal';
 import { CreditHistoryModal } from './CreditHistoryModal';
+import { CreditSaleModal } from './CreditSaleModal';
 
 interface TechnicalService {
   id: number;
@@ -24,6 +25,7 @@ export function TechnicalServicesTab() {
   const [showForm, setShowForm] = useState(false);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showSaleModal, setShowSaleModal] = useState(false);
   const [editingService, setEditingService] = useState<TechnicalService | null>(null);
   const [selectedService, setSelectedService] = useState<TechnicalService | null>(null);
 
@@ -103,6 +105,11 @@ export function TechnicalServicesTab() {
   const handleHistory = (service: TechnicalService) => {
     setSelectedService(service);
     setShowHistoryModal(true);
+  };
+
+  const handleSale = (service: TechnicalService) => {
+    setSelectedService(service);
+    setShowSaleModal(true);
   };
 
   const getBalanceColor = (balance: number) => {
@@ -185,33 +192,41 @@ export function TechnicalServicesTab() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => handleEdit(service)}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors text-sm"
+                  className="flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors text-sm"
                 >
                   <Edit className="w-4 h-4" />
                   Düzenle
                 </button>
                 <button
+                  onClick={() => handleSale(service)}
+                  className="flex items-center justify-center gap-2 px-3 py-2 text-orange-600 hover:text-orange-900 hover:bg-orange-50 rounded-lg transition-colors text-sm"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  Ürün Sat
+                </button>
+                <button
                   onClick={() => handlePayment(service)}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors text-sm"
+                  className="flex items-center justify-center gap-2 px-3 py-2 text-green-600 hover:text-green-900 hover:bg-green-50 rounded-lg transition-colors text-sm"
                 >
                   <CreditCard className="w-4 h-4" />
                   Ödeme
                 </button>
                 <button
                   onClick={() => handleHistory(service)}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors text-sm"
+                  className="flex items-center justify-center gap-2 px-3 py-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors text-sm"
                 >
                   <History className="w-4 h-4" />
                   Geçmiş
                 </button>
                 <button
                   onClick={() => handleDelete(service.id)}
-                  className="px-3 py-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors text-sm"
+                  className="col-span-2 flex items-center justify-center gap-2 px-3 py-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors text-sm"
                 >
                   <Trash2 className="w-4 h-4" />
+                  Sil
                 </button>
               </div>
             </div>
@@ -243,6 +258,17 @@ export function TechnicalServicesTab() {
           onClose={() => {
             setShowHistoryModal(false);
             setSelectedService(null);
+          }}
+        />
+      )}
+
+      {showSaleModal && selectedService && (
+        <CreditSaleModal
+          service={selectedService}
+          onClose={() => {
+            setShowSaleModal(false);
+            setSelectedService(null);
+            loadServices();
           }}
         />
       )}

@@ -433,11 +433,11 @@ app.get('/api/admin/technical-services/:id/transactions', async (req, res) => {
 
 app.post('/api/admin/technical-services/:id/transactions', async (req, res) => {
   try {
-    const { transaction_type, amount, description, reference_number, created_by } = req.body;
+    const { transaction_type, amount, description, reference_number, payment_method, created_by } = req.body;
     
     const [result] = await pool.execute(
-      'INSERT INTO credit_transactions (technical_service_id, transaction_type, amount, description, reference_number, created_by) VALUES (?, ?, ?, ?, ?, ?)',
-      [req.params.id, transaction_type, amount, description, reference_number, created_by]
+      'INSERT INTO credit_transactions (technical_service_id, transaction_type, amount, description, reference_number, payment_method, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [req.params.id, transaction_type, amount, description, reference_number, payment_method, created_by]
     );
     
     // Update current balance

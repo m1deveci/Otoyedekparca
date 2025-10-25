@@ -19,6 +19,7 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
     amount: '',
     description: '',
     reference_number: '',
+    payment_method: 'cash',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,6 +33,7 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
         amount: parseFloat(formData.amount),
         description: formData.description,
         reference_number: formData.reference_number,
+        payment_method: formData.payment_method,
         created_by: 'Admin', // TODO: Get from auth context
       };
 
@@ -151,6 +153,23 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
                   className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
                   placeholder="İşlem açıklaması"
                 />
+              </div>
+
+              {/* Payment Method */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Ödeme Türü
+                </label>
+                <select
+                  value={formData.payment_method}
+                  onChange={(e) => setFormData({ ...formData, payment_method: e.target.value })}
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                >
+                  <option value="cash">Nakit</option>
+                  <option value="credit_card">Kredi Kartı</option>
+                  <option value="bank_transfer">Havale/EFT</option>
+                  <option value="check">Çek</option>
+                </select>
               </div>
 
               {/* Reference Number */}
