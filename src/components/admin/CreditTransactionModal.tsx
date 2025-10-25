@@ -90,10 +90,14 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
   };
 
   const handleFullBalanceToggle = () => {
-    setUseFullBalance(!useFullBalance);
-    if (!useFullBalance) {
+    const newUseFullBalance = !useFullBalance;
+    setUseFullBalance(newUseFullBalance);
+    
+    if (newUseFullBalance) {
+      // Tüm bakiyeyi kapat seçildi - mevcut bakiyeyi doldur
       setFormData({ ...formData, amount: (service.current_balance || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) });
     } else {
+      // Tüm bakiyeyi kapat kaldırıldı - alanı temizle
       setFormData({ ...formData, amount: '' });
     }
   };
