@@ -2,6 +2,13 @@
 
 Modern e-ticaret sitesi - Otomobil yedek parça, filtre ve madeni yağ satış platformu.
 
+## 🔗 Proje Bilgileri
+
+- **GitHub Repository:** [https://github.com/m1deveci/Otoyedekparca.git](https://github.com/m1deveci/Otoyedekparca.git)
+- **Canlı Site:** https://otoridvan.devkit.com.tr
+- **Admin Panel:** https://otoridvan.devkit.com.tr (admin@otoridvan.com / admin123)
+- **GitHub Token:** [GitHub güvenlik kuralları nedeniyle README'de saklanmıyor]
+
 ## 🚀 Özellikler
 
 - **Modern Tasarım** - Kalyoncu Motor benzeri profesyonel görünüm
@@ -73,15 +80,28 @@ npm run build
 npm run server
 ```
 
-## 🗄️ Veritabanı Yapısı
+## 🗄️ MySQL Veritabanı Bilgileri
 
-### Tablolar
+### Veritabanı Bağlantı Bilgileri
+- **Host:** localhost
+- **Port:** 3306
+- **Database:** otoridvan_db
+- **Username:** otoridvan_user
+- **Password:** DevkitDeveci1453
+- **Type:** MariaDB/MySQL
+
+### Veritabanı Yapısı
 - **categories** - Ürün kategorileri
 - **products** - Ürün bilgileri
 - **customers** - Müşteri bilgileri
 - **orders** - Sipariş bilgileri
 - **order_items** - Sipariş kalemleri
 - **admin_users** - Admin kullanıcıları
+
+### Admin Kullanıcı Bilgileri
+- **Email:** admin@otoridvan.com
+- **Password:** admin123
+- **Role:** super_admin
 
 ## 🔧 API Endpoints
 
@@ -101,14 +121,25 @@ npm run server
 ### Giriş Bilgileri
 - **Email:** admin@otoridvan.com
 - **Şifre:** admin123
+- **URL:** https://otoridvan.devkit.com.tr
 
 ### Özellikler
-- Ürün ekleme/düzenleme/silme
-- Kategori yönetimi
-- Sipariş takibi
-- Stok yönetimi
+- ✅ **Dashboard** - İstatistikler ve genel bakış
+- ✅ **Ürün Yönetimi** - Ekleme, düzenleme, silme
+- ✅ **Kategori Yönetimi** - Ekleme, düzenleme, silme
+- ✅ **Sipariş Takibi** - Sipariş listesi ve detayları
+- ✅ **Stok Yönetimi** - Stok durumu ve uyarılar
+- ✅ **MySQL Entegrasyonu** - Tüm işlemler MySQL üzerinden
 
 ## 🌐 Deployment
+
+### Canlı Site Bilgileri
+- **Domain:** otoridvan.devkit.com.tr
+- **SSL:** Cloudflare Origin SSL
+- **Web Server:** Nginx
+- **Backend:** Node.js + Express.js (Port 4000)
+- **Database:** MariaDB/MySQL
+- **Frontend:** React + TypeScript + Vite
 
 ### Nginx Konfigürasyonu
 ```nginx
