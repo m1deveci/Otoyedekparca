@@ -285,9 +285,18 @@ app.post('/api/admin/products', async (req, res) => {
       stock_quantity, low_stock_threshold, image_url, images, specifications, is_featured, is_active
     } = req.body;
     
+    // Convert undefined values to null for MySQL
+    const safeDescription = description === undefined ? null : description;
+    const safeShortDescription = short_description === undefined ? null : short_description;
+    const safeImageUrl = image_url === undefined ? null : image_url;
+    const safeImages = images === undefined ? null : JSON.stringify(images);
+    const safeSpecifications = specifications === undefined ? null : JSON.stringify(specifications);
+    const safeCostPrice = cost_price === undefined ? null : cost_price;
+    const safeSalePrice = sale_price === undefined ? null : sale_price;
+    
     const [result] = await pool.execute(
       'INSERT INTO products (category_id, name, slug, description, short_description, sku, brand, cost_price, price, sale_price, stock_quantity, low_stock_threshold, image_url, images, specifications, is_featured, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [category_id, name, slug, description, short_description, sku, brand, cost_price, price, sale_price, stock_quantity, low_stock_threshold, image_url, JSON.stringify(images), JSON.stringify(specifications), is_featured, is_active]
+      [category_id, name, slug, safeDescription, safeShortDescription, sku, brand, safeCostPrice, price, safeSalePrice, stock_quantity, low_stock_threshold, safeImageUrl, safeImages, safeSpecifications, is_featured, is_active]
     );
     res.json({ id: result.insertId, ...req.body });
   } catch (error) {
@@ -303,9 +312,18 @@ app.put('/api/admin/products/:id', async (req, res) => {
       stock_quantity, low_stock_threshold, image_url, images, specifications, is_featured, is_active
     } = req.body;
     
+    // Convert undefined values to null for MySQL
+    const safeDescription = description === undefined ? null : description;
+    const safeShortDescription = short_description === undefined ? null : short_description;
+    const safeImageUrl = image_url === undefined ? null : image_url;
+    const safeImages = images === undefined ? null : JSON.stringify(images);
+    const safeSpecifications = specifications === undefined ? null : JSON.stringify(specifications);
+    const safeCostPrice = cost_price === undefined ? null : cost_price;
+    const safeSalePrice = sale_price === undefined ? null : sale_price;
+    
     await pool.execute(
       'UPDATE products SET category_id = ?, name = ?, slug = ?, description = ?, short_description = ?, sku = ?, brand = ?, cost_price = ?, price = ?, sale_price = ?, stock_quantity = ?, low_stock_threshold = ?, image_url = ?, images = ?, specifications = ?, is_featured = ?, is_active = ? WHERE id = ?',
-      [category_id, name, slug, description, short_description, sku, brand, cost_price, price, sale_price, stock_quantity, low_stock_threshold, image_url, JSON.stringify(images), JSON.stringify(specifications), is_featured, is_active, req.params.id]
+      [category_id, name, slug, safeDescription, safeShortDescription, sku, brand, safeCostPrice, price, safeSalePrice, stock_quantity, low_stock_threshold, safeImageUrl, safeImages, safeSpecifications, is_featured, is_active, req.params.id]
     );
     res.json({ success: true });
   } catch (error) {
