@@ -144,7 +144,9 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
   const handleAddBrand = async () => {
     if (newBrand.trim()) {
       const brandName = newBrand.trim();
-      setFormData({ ...formData, brand: brandName });
+      
+      // Önce markayı güncelle
+      setFormData(prev => ({ ...prev, brand: brandName }));
       
       // Yeni markayı listeye ekle
       if (!brands.includes(brandName)) {
@@ -206,8 +208,13 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
   };
 
   const handleBrandChange = async (brand: string) => {
-    setFormData({ ...formData, brand });
+    console.log('Brand changed to:', brand); // Debug için
+    // Önce markayı güncelle
+    const updatedFormData = { ...formData, brand };
+    setFormData(updatedFormData);
+    console.log('FormData updated:', updatedFormData); // Debug için
     
+    // Eğer otomatik SKU oluşturma açıksa ve marka seçildiyse
     if (autoGenerateSku && brand.trim()) {
       const newSku = await generateSku(brand);
       if (newSku) {
@@ -352,7 +359,7 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
                   </label>
                   <div className="flex gap-2">
                     <select
-                      value={formData.brand}
+                      value={formData.brand || ''}
                       onChange={(e) => handleBrandChange(e.target.value)}
                       className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                       disabled={loadingBrands}
