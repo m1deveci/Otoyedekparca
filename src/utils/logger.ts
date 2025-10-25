@@ -174,7 +174,7 @@ export const logActions = {
     action: 'credit_sale',
     entity_type: 'credit_sale',
     entity_id: service.id,
-    description: `Veresiye satış yapıldı: ${service.name} - Toplam: ${totalAmount.toLocaleString('tr-TR')} ₺`,
+    description: `Veresiye satış: ${service.name} - Toplam: ${totalAmount.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })}`,
     new_values: { totalAmount, productsSold, serviceName: service.name },
   }),
 
@@ -183,7 +183,7 @@ export const logActions = {
     action: 'payment',
     entity_type: 'credit_transaction',
     entity_id: service.id,
-    description: `Borç ödemesi yapıldı: ${service.name} - ${amount.toLocaleString('tr-TR')} ₺ - ${paymentMethod}`,
+    description: `Ödeme: ${service.name} - ${amount.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })} - ${paymentMethod}`,
     new_values: { amount, paymentMethod, referenceNumber, serviceName: service.name },
   }),
 

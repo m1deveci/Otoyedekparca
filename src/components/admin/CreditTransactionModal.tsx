@@ -76,6 +76,18 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
       });
 
       if (response.ok) {
+        // Log işlemi
+        if (transactionType === 'payment') {
+          await logActions.creditPaymentMade(service, Math.abs(amount), formData.payment_method, formData.reference_number);
+        } else if (transactionType === 'adjustment') {
+          await logActions.systemAction('adjustment', `Bakiye düzeltildi: ${service.name} - Yeni bakiye: ${(service.current_balance + amount).toLocaleString('tr-TR')} ₺`, {
+            serviceName: service.name,
+            oldBalance: service.current_balance,
+            newBalance: service.current_balance + amount,
+            adjustment: amount
+          });
+        }
+        
         alert('İşlem başarıyla kaydedildi!');
         onClose();
       } else {
