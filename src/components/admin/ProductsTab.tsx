@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Plus, Edit, Trash2, Package, Search, Filter, Download, AlertTriangle, Droplets, Wrench } from 'lucide-react';
 import type { Product, Category } from '../../types';
 import { ProductForm } from './ProductForm';
 import { apiClient } from '../../lib/api';
 
 export function ProductsTab() {
+  const location = useLocation();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,6 +23,19 @@ export function ProductsTab() {
     loadProducts();
     loadCategories();
   }, []);
+
+  // Navigation state'ini kontrol et
+  useEffect(() => {
+    if (location.state) {
+      const { selectedCategory: navCategory, showFilters: navShowFilters } = location.state as any;
+      if (navCategory) {
+        setSelectedCategory(navCategory);
+      }
+      if (navShowFilters) {
+        setShowFilters(navShowFilters);
+      }
+    }
+  }, [location.state]);
 
   useEffect(() => {
     filterProducts();

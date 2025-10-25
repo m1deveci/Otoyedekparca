@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, FolderOpen } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { Category } from '../../types';
 import { CategoryForm } from './CategoryForm';
 import { apiClient } from '../../lib/api';
 
 export function CategoriesTab() {
+  const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -47,6 +49,16 @@ export function CategoriesTab() {
     } catch (error) {
       console.error('Error loading product counts:', error);
     }
+  };
+
+  const handleProductCountClick = (categoryId: number) => {
+    // Products sayfasına yönlendir ve kategori filtresini ayarla
+    navigate('/admin/products', { 
+      state: { 
+        selectedCategory: categoryId.toString(),
+        showFilters: true 
+      } 
+    });
   };
 
   const handleDelete = async (id: string) => {
@@ -120,7 +132,11 @@ export function CategoriesTab() {
                     <p className="text-xs text-green-600 font-medium">
                       Kar Marjı: %{(category as any).profit_margin || 0}
                     </p>
-                    <p className="text-xs text-blue-600 font-medium">
+                    <p 
+                      className="text-xs text-blue-600 font-medium cursor-pointer hover:text-blue-800 hover:underline transition-colors"
+                      onClick={() => handleProductCountClick(category.id)}
+                      title="Bu kategorideki ürünleri görüntüle"
+                    >
                       Ürün Sayısı: {productCounts[category.id] || 0}
                     </p>
                   </div>
