@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Plus, Edit, Trash2, Package, Search, Filter, Download, AlertTriangle, Droplets, Wrench, PackagePlus } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Search, Filter, Download, AlertTriangle, Droplets, Wrench, PackagePlus, History } from 'lucide-react';
 import type { Product, Category } from '../../types';
 import { ProductForm } from './ProductForm';
 import { StockAddModal } from './StockAddModal';
+import { ProductHistoryModal } from './ProductHistoryModal';
 import { apiClient } from '../../lib/api';
 import { logActions } from '../../utils/logger';
 
@@ -14,6 +15,7 @@ export function ProductsTab() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showStockModal, setShowStockModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
@@ -227,6 +229,16 @@ export function ProductsTab() {
     setShowStockModal(false);
     setSelectedProduct(null);
     loadProducts();
+  };
+
+  const handleHistory = (product: Product) => {
+    setSelectedProduct(product);
+    setShowHistoryModal(true);
+  };
+
+  const handleHistoryModalClose = () => {
+    setShowHistoryModal(false);
+    setSelectedProduct(null);
   };
 
   const getCategoryName = (categoryId: string | null) => {
@@ -507,6 +519,13 @@ export function ProductsTab() {
                           <PackagePlus className="w-4 h-4" />
                         </button>
                         <button
+                          onClick={() => handleHistory(product)}
+                          className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                          title="Geçmiş"
+                        >
+                          <History className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => handleEdit(product)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Düzenle"
@@ -601,6 +620,13 @@ export function ProductsTab() {
         <StockAddModal
           product={selectedProduct}
           onClose={handleStockModalClose}
+        />
+      )}
+
+      {showHistoryModal && selectedProduct && (
+        <ProductHistoryModal
+          product={selectedProduct}
+          onClose={handleHistoryModalClose}
         />
       )}
     </div>

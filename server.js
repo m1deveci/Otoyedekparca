@@ -929,6 +929,20 @@ app.get('/api/admin/products/:id/stock-history', async (req, res) => {
   }
 });
 
+// Sales history endpoint
+app.get('/api/admin/products/:id/sales-history', async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      'SELECT cs.*, ts.name as service_name FROM credit_sales cs LEFT JOIN technical_services ts ON cs.technical_service_id = ts.id WHERE cs.product_id = ? ORDER BY cs.created_at DESC',
+      [req.params.id]
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching sales history:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
