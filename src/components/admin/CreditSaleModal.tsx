@@ -1,6 +1,7 @@
 import { X, Save, Package, Calculator, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { logActions } from '../../utils/logger';
+import Swal from 'sweetalert2';
 
 interface TechnicalService {
   id: number;
@@ -108,8 +109,19 @@ export function CreditSaleModal({ service, onClose }: CreditSaleModalProps) {
     return product.price || 0;
   };
 
-  const addToCart = () => {
+  const addToCart = async () => {
     if (!selectedProduct || quantity <= 0) return;
+
+    // Stok kontrolü
+    if (selectedProduct.stock_quantity < quantity) {
+      await Swal.fire({
+        title: 'Stok Yetersiz!',
+        text: `${selectedProduct.name} ürününden stokta sadece ${selectedProduct.stock_quantity} adet bulunmaktadır.`,
+        icon: 'warning',
+        confirmButtonText: 'Tamam'
+      });
+      return;
+    }
 
     const unitPrice = calculateProductPrice(selectedProduct);
     const totalPrice = unitPrice * quantity;
@@ -117,10 +129,21 @@ export function CreditSaleModal({ service, onClose }: CreditSaleModalProps) {
     const existingItem = cart.find(item => item.product.id === selectedProduct.id);
     
     if (existingItem) {
-      // Mevcut ürünün miktarını artır
+      // Mevcut ürünün miktarını artır - stok kontrolü
+      const newTotalQuantity = existingItem.quantity + quantity;
+      if (selectedProduct.stock_quantity < newTotalQuantity) {
+        await Swal.fire({
+          title: 'Stok Yetersiz!',
+          text: `${selectedProduct.name} ürününden stokta sadece ${selectedProduct.stock_quantity} adet bulunmaktadır. Sepette zaten ${existingItem.quantity} adet var.`,
+          icon: 'warning',
+          confirmButtonText: 'Tamam'
+        });
+        return;
+      }
+      
       setCart(cart.map(item => 
         item.product.id === selectedProduct.id 
-          ? { ...item, quantity: item.quantity + quantity, totalPrice: (item.quantity + quantity) * unitPrice }
+          ? { ...item, quantity: newTotalQuantity, totalPrice: newTotalQuantity * unitPrice }
           : item
       ));
     } else {
@@ -184,7 +207,7 @@ export function CreditSaleModal({ service, onClose }: CreditSaleModalProps) {
     setLoading(true);
 
     try {
-      // Her ürün için ayrı satış kaydı oluştur
+      // Her ürün için ayrı satış kaydı oluştur ve stoktan düş
       for (const item of cart) {
         const data = {
           product_id: item.product.id,
@@ -206,13 +229,39 @@ export function CreditSaleModal({ service, onClose }: CreditSaleModalProps) {
         if (!response.ok) {
           throw new Error('API request failed');
         }
+
+        // Stoktan düş
+        const stockResponse = await fetch(`/api/admin/products/${item.product.id}/stock`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            quantity: item.quantity,
+            operation: 'decrease'
+          }),
+        });
+
+        if (!stockResponse.ok) {
+          console.error('Failed to update stock for product:', item.product.name);
+        }
       }
       
-      alert('Veresiye satış kaydedildi!');
+      await Swal.fire({
+        title: 'Başarılı!',
+        text: 'Veresiye satış kaydedildi ve stoklar güncellendi!',
+        icon: 'success',
+        confirmButtonText: 'Tamam'
+      });
       onClose();
     } catch (error) {
       console.error('Error saving credit sale:', error);
-      alert('Veresiye satış kaydedilirken bir hata oluştu.');
+      await Swal.fire({
+        title: 'Hata!',
+        text: 'Veresiye satış kaydedilirken bir hata oluştu.',
+        icon: 'error',
+        confirmButtonText: 'Tamam'
+      });
     } finally {
       setLoading(false);
     }

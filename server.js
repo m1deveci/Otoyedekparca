@@ -823,6 +823,89 @@ app.post('/api/admin/technical-services/:id/sales', async (req, res) => {
   }
 });
 
+// Authentication endpoint
+app.post('/api/auth/login', [
+  body('email').isEmail().normalizeEmail(),
+  body('password').isLength({ min: 6 }).trim(),
+  validateInput
+], async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // For demo purposes - in production, use proper password hashing
+    if (email === 'admin@otoridvan.com' && password === 'admin123') {
+      const userData = {
+        id: '1',
+        email: email,
+        name: 'Admin User',
+        role: 'admin'
+      };
+      
+      res.json(userData);
+    } else {
+      res.status(401).json({
+        error: 'Invalid credentials',
+        message: 'Email or password is incorrect'
+      });
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Authentication failed'
+    });
+  }
+});
+
+// Stock management endpoint
+app.put('/api/admin/products/:id/stock', async (req, res) => {
+  try {
+    const { quantity, operation } = req.body;
+    const productId = req.params.id;
+    
+    if (!quantity || !operation) {
+      return res.status(400).json({ error: 'Quantity and operation are required' });
+    }
+    
+    // Get current stock
+    const [rows] = await pool.execute(
+      'SELECT stock_quantity FROM products WHERE id = ?',
+      [productId]
+    );
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
+    const currentStock = rows[0].stock_quantity;
+    let newStock;
+    
+    if (operation === 'decrease') {
+      newStock = Math.max(0, currentStock - quantity);
+    } else if (operation === 'increase') {
+      newStock = currentStock + quantity;
+    } else {
+      return res.status(400).json({ error: 'Invalid operation. Use "increase" or "decrease"' });
+    }
+    
+    // Update stock
+    await pool.execute(
+      'UPDATE products SET stock_quantity = ? WHERE id = ?',
+      [newStock, productId]
+    );
+    
+    res.json({ 
+      success: true, 
+      previous_stock: currentStock, 
+      new_stock: newStock,
+      change: operation === 'decrease' ? -quantity : quantity
+    });
+  } catch (error) {
+    console.error('Error updating stock:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
