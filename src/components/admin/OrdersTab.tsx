@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { ShoppingBag, Eye } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 import type { Order } from '../../types';
 import { OrderDetailsModal } from './OrderDetailsModal';
 

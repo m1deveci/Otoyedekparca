@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, FolderOpen } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 import type { Category } from '../../types';
 import { CategoryForm } from './CategoryForm';
+import { apiClient } from '../../lib/api';
 
 export function CategoriesTab() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -16,13 +16,8 @@ export function CategoriesTab() {
 
   const loadCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('display_order');
-
-      if (error) throw error;
-      setCategories(data || []);
+      const data = await apiClient.getCategories();
+      setCategories(data);
     } catch (error) {
       console.error('Error loading categories:', error);
     } finally {
@@ -34,8 +29,7 @@ export function CategoriesTab() {
     if (!confirm('Bu kategoriyi silmek istediğinize emin misiniz?')) return;
 
     try {
-      const { error } = await supabase.from('categories').delete().eq('id', id);
-      if (error) throw error;
+      await apiClient.deleteCategory(parseInt(id));
       loadCategories();
     } catch (error) {
       console.error('Error deleting category:', error);

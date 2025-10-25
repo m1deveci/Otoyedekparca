@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Settings, Save, DollarSign, Truck, CreditCard, AlertCircle } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 import type { StoreSetting, PaymentMethod, ShippingMethod } from '../../types';
 
 export function SettingsTab() {

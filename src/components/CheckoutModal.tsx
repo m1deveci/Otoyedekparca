@@ -1,7 +1,6 @@
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
-import { supabase } from '../lib/supabase';
 
 interface CheckoutModalProps {
   isOpen: boolean;

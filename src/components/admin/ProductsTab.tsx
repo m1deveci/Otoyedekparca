@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Package } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 import type { Product, Category } from '../../types';
 import { ProductForm } from './ProductForm';
 

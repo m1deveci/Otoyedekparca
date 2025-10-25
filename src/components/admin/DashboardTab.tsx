@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, Package, ShoppingBag, DollarSign, AlertTriangle, Users, ArrowUp, ArrowDown } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 import type { InventoryAlert } from '../../types';
 
 interface DashboardStats {
