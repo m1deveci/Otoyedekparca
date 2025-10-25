@@ -67,6 +67,7 @@ export function CategoryForm({ category, onClose }: CategoryFormProps) {
         image_url: formData.image_url,
         display_order: parseInt(formData.display_order),
         is_active: formData.is_active,
+        profit_margin: parseFloat(formData.profit_margin) || 0,
       };
 
       if (category) {
