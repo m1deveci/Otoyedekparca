@@ -62,10 +62,10 @@ export function CreditHistoryModal({ service, onClose }: CreditHistoryModalProps
         
         // History verilerini işle
         const transactions = data.filter((item: any) => 
-          item.action_type === 'payment' || item.action_type === 'credit_sale'
+          item.type === 'history'
         ).map((item: any) => ({
           id: item.id,
-          transaction_type: item.action_type === 'payment' ? 'payment' : 'sale',
+          transaction_type: item.action_type === 'payment' ? 'payment' : 'adjustment',
           amount: item.action_type === 'payment' ? -Math.abs(item.amount) : item.amount,
           description: item.description,
           reference_number: item.reference_number || '',
@@ -75,15 +75,17 @@ export function CreditHistoryModal({ service, onClose }: CreditHistoryModalProps
         }));
 
         const sales = data.filter((item: any) => 
-          item.action_type === 'credit_sale'
+          item.type === 'sale'
         ).map((item: any) => ({
           id: item.id,
-          product_name: 'Ürün Satışı', // Bu bilgiyi product_id'den alabiliriz
-          quantity: 1, // Bu bilgiyi description'dan parse edebiliriz
-          unit_price: item.amount,
-          total_amount: item.amount,
+          product_name: item.product_name,
+          product_brand: item.product_brand,
+          product_sku: item.product_sku,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total_amount: item.total_price,
           sale_date: item.created_at.split('T')[0],
-          notes: item.description
+          notes: `Marka: ${item.product_brand || 'Belirtilmemiş'} | SKU: ${item.product_sku || 'Belirtilmemiş'}`
         }));
 
         setTransactions(transactions);
@@ -323,10 +325,16 @@ export function CreditHistoryModal({ service, onClose }: CreditHistoryModalProps
                         </h4>
                         <p className="text-sm text-slate-600">
                           {item.type === 'sale' 
-                            ? `${item.quantity} adet x ${item.unit_price} ₺`
+                            ? `${item.quantity} adet x ${item.unit_price.toLocaleString('tr-TR')} ₺`
                             : item.description
                           }
                         </p>
+                        {item.type === 'sale' && (
+                          <p className="text-xs text-slate-500 mt-1">
+                            {item.product_brand && `Marka: ${item.product_brand}`}
+                            {item.product_sku && ` | SKU: ${item.product_sku}`}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="text-right">

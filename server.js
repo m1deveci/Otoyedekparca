@@ -831,11 +831,32 @@ app.get('/api/health', (req, res) => {
 // Technical service history endpoints
 app.get('/api/admin/technical-services/:id/history', async (req, res) => {
   try {
-    const [rows] = await pool.execute(
+    // Get history records
+    const [historyRows] = await pool.execute(
       'SELECT * FROM technical_service_history WHERE technical_service_id = ? ORDER BY created_at DESC',
       [req.params.id]
     );
-    res.json(rows);
+    
+    // Get credit sales with product details
+    const [salesRows] = await pool.execute(`
+      SELECT 
+        cs.*,
+        p.name as product_name,
+        p.brand as product_brand,
+        p.sku as product_sku
+      FROM credit_sales cs
+      JOIN products p ON cs.product_id = p.id
+      WHERE cs.technical_service_id = ?
+      ORDER BY cs.created_at DESC
+    `, [req.params.id]);
+    
+    // Combine both results
+    const combinedResults = [
+      ...historyRows.map(row => ({ ...row, type: 'history' })),
+      ...salesRows.map(row => ({ ...row, type: 'sale' }))
+    ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    
+    res.json(combinedResults);
   } catch (error) {
     console.error('Error fetching technical service history:', error);
     res.status(500).json({ error: 'Internal server error' });
