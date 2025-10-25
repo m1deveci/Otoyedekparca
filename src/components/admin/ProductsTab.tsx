@@ -18,6 +18,11 @@ export function ProductsTab() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
     loadProducts();
@@ -40,6 +45,18 @@ export function ProductsTab() {
   useEffect(() => {
     filterProducts();
   }, [products, searchQuery, selectedCategory]);
+
+  // Pagination hesaplamaları
+  useEffect(() => {
+    const total = filteredProducts.length;
+    const pages = Math.ceil(total / itemsPerPage);
+    setTotalPages(pages);
+    
+    // Eğer mevcut sayfa toplam sayfa sayısından büyükse, ilk sayfaya git
+    if (currentPage > pages && pages > 0) {
+      setCurrentPage(1);
+    }
+  }, [filteredProducts, itemsPerPage, currentPage]);
 
   const filterProducts = () => {
     let filtered = [...products];
@@ -74,6 +91,34 @@ export function ProductsTab() {
       oils: oilProducts.length,
       lowStock: lowStockProducts.length
     };
+  };
+
+  // Pagination fonksiyonları
+  const getCurrentPageProducts = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredProducts.slice(startIndex, endIndex);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (items: number) => {
+    setItemsPerPage(items);
+    setCurrentPage(1); // Sayfa değiştiğinde ilk sayfaya git
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
   };
 
   const handleStatClick = (type: string) => {
@@ -364,7 +409,7 @@ export function ProductsTab() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {filteredProducts.map((product) => (
+                {getCurrentPageProducts().map((product) => (
                   <tr key={product.id} className="hover:bg-slate-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -457,6 +502,65 @@ export function ProductsTab() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {filteredProducts.length > 0 && (
+        <div className="bg-white border border-slate-200 rounded-lg p-4 mt-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* Sayfa başına öğe seçimi */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-600">Sayfa başına:</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => handleItemsPerPageChange(parseInt(e.target.value))}
+                className="px-3 py-1 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={15}>15</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
+              <span className="text-sm text-slate-600">
+                {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredProducts.length)} / {filteredProducts.length}
+              </span>
+            </div>
+
+            {/* Sayfa navigasyonu */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 border border-slate-300 rounded-lg text-sm hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Önceki
+              </button>
+              
+              {getPageNumbers().map(page => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`px-3 py-1 border rounded-lg text-sm ${
+                    currentPage === page
+                      ? 'bg-orange-500 text-white border-orange-500'
+                      : 'border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 border border-slate-300 rounded-lg text-sm hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Sonraki
+              </button>
+            </div>
           </div>
         </div>
       )}
