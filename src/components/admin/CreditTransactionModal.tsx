@@ -32,7 +32,7 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
       // Türk para birimi formatından sayıya çevir
       let amount = parseFloat(formData.amount.replace(/\./g, '').replace(',', '.')) || 0;
       
-      // Ödeme türü için kontrol
+      // İşlem türüne göre tutar hesaplama
       if (transactionType === 'payment') {
         // Ödeme yapılıyorsa, mevcut bakiyeden fazla ödeme yapılamaz
         const currentBalance = service.current_balance || 0;
@@ -43,6 +43,18 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
         }
         // Ödeme tutarını negatif yap (bakiye azaltmak için)
         amount = -amount;
+      } else if (transactionType === 'adjustment') {
+        // Düzeltme işlemi: Yeni bakiye - Mevcut bakiye = Fark
+        const currentBalance = service.current_balance || 0;
+        const newBalance = amount;
+        amount = newBalance - currentBalance; // Fark hesapla
+        
+        // Eğer fark 0 ise, değişiklik yok
+        if (amount === 0) {
+          alert('Mevcut bakiye ile aynı tutar girildi. Değişiklik yapılmadı.');
+          setLoading(false);
+          return;
+        }
       }
 
       const data = {
@@ -155,7 +167,7 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
                       <FileText className="w-5 h-5" />
                       <span className="font-medium">Düzeltme</span>
                     </div>
-                    <p className="text-xs mt-1">Bakiye ayarlar</p>
+                    <p className="text-xs mt-1">Bakiye ayarlar (yeni tutar)</p>
                   </button>
                 </div>
               </div>
@@ -163,21 +175,28 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
               {/* Amount */}
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Tutar (₺) *
+                  {transactionType === 'payment' ? 'Ödeme Tutarı (₺) *' : 'Yeni Bakiye (₺) *'}
                 </label>
+                {transactionType === 'adjustment' && (
+                  <p className="text-xs text-slate-500 mb-2">
+                    Mevcut bakiye: {(service.current_balance || 0).toLocaleString('tr-TR')} ₺
+                  </p>
+                )}
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="useFullBalance"
-                      checked={useFullBalance}
-                      onChange={handleFullBalanceToggle}
-                      className="w-4 h-4 text-orange-600 border-slate-300 rounded focus:ring-orange-500"
-                    />
-                    <label htmlFor="useFullBalance" className="text-sm font-medium text-slate-700">
-                      Tüm bakiyeyi kapat ({(service.current_balance || 0).toLocaleString('tr-TR')} ₺)
-                    </label>
-                  </div>
+                  {transactionType === 'payment' && (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="useFullBalance"
+                        checked={useFullBalance}
+                        onChange={handleFullBalanceToggle}
+                        className="w-4 h-4 text-orange-600 border-slate-300 rounded focus:ring-orange-500"
+                      />
+                      <label htmlFor="useFullBalance" className="text-sm font-medium text-slate-700">
+                        Tüm bakiyeyi kapat ({(service.current_balance || 0).toLocaleString('tr-TR')} ₺)
+                      </label>
+                    </div>
+                  )}
                   <input
                     type="text"
                     required
