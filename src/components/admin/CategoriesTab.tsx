@@ -9,10 +9,17 @@ export function CategoriesTab() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [productCounts, setProductCounts] = useState<{[key: number]: number}>({});
 
   useEffect(() => {
     loadCategories();
   }, []);
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      loadProductCounts();
+    }
+  }, [categories]);
 
   const loadCategories = async () => {
     try {
@@ -22,6 +29,23 @@ export function CategoriesTab() {
       console.error('Error loading categories:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadProductCounts = async () => {
+    try {
+      const counts: {[key: number]: number} = {};
+      
+      // Her kategori için ürün sayısını hesapla
+      for (const category of categories) {
+        const products = await apiClient.getProducts();
+        const categoryProducts = products.filter(product => product.category_id === category.id);
+        counts[category.id] = categoryProducts.length;
+      }
+      
+      setProductCounts(counts);
+    } catch (error) {
+      console.error('Error loading product counts:', error);
     }
   };
 
@@ -95,6 +119,9 @@ export function CategoriesTab() {
                     <p className="text-xs text-slate-500">{category.slug}</p>
                     <p className="text-xs text-green-600 font-medium">
                       Kar Marjı: %{(category as any).profit_margin || 0}
+                    </p>
+                    <p className="text-xs text-blue-600 font-medium">
+                      Ürün Sayısı: {productCounts[category.id] || 0}
                     </p>
                   </div>
                 </div>
