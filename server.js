@@ -842,21 +842,35 @@ app.get('/api/admin/technical-services/:id/history', async (req, res) => {
   }
 });
 
-app.post('/api/admin/technical-services/:id/history', async (req, res) => {
-  try {
-    const { action_type, description, amount, previous_balance, new_balance, reference_number, payment_method, created_by } = req.body;
-    
-    const [result] = await pool.execute(
-      'INSERT INTO technical_service_history (technical_service_id, action_type, description, amount, previous_balance, new_balance, reference_number, payment_method, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [req.params.id, action_type, description, amount, previous_balance, new_balance, reference_number, payment_method, created_by]
-    );
-    
-    res.json({ id: result.insertId, ...req.body });
-  } catch (error) {
-    console.error('Error creating technical service history:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+    app.post('/api/admin/technical-services/:id/history', async (req, res) => {
+      try {
+        const { action_type, description, amount, previous_balance, new_balance, reference_number, payment_method, created_by } = req.body;
+        
+        const [result] = await pool.execute(
+          'INSERT INTO technical_service_history (technical_service_id, action_type, description, amount, previous_balance, new_balance, reference_number, payment_method, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [req.params.id, action_type, description, amount, previous_balance, new_balance, reference_number, payment_method, created_by]
+        );
+        
+        res.json({ id: result.insertId, ...req.body });
+      } catch (error) {
+        console.error('Error creating technical service history:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
+    });
+
+    app.delete('/api/admin/technical-services/:id/history', async (req, res) => {
+      try {
+        await pool.execute(
+          'DELETE FROM technical_service_history WHERE technical_service_id = ?',
+          [req.params.id]
+        );
+        
+        res.json({ message: 'History cleared successfully' });
+      } catch (error) {
+        console.error('Error clearing technical service history:', error);
+        res.status(500).json({ error: 'Internal server error' });
+      }
+    });
 
 // System logs endpoints
 app.get('/api/admin/system-logs', async (req, res) => {

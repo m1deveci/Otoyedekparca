@@ -1,6 +1,7 @@
 import { X, Save, CreditCard, DollarSign, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { logActions } from '../../utils/logger';
+import Swal from 'sweetalert2';
 
 interface TechnicalService {
   id: number;
@@ -37,7 +38,12 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
         // Ödeme yapılıyorsa, mevcut bakiyeden fazla ödeme yapılamaz
         const currentBalance = service.current_balance || 0;
         if (amount > currentBalance) {
-          alert(`Ödeme tutarı mevcut bakiyeden (${currentBalance.toLocaleString('tr-TR')} ₺) fazla olamaz!`);
+          await Swal.fire({
+            title: 'Hata!',
+            text: `Ödeme tutarı mevcut bakiyeden (${currentBalance.toLocaleString('tr-TR')} ₺) fazla olamaz!`,
+            icon: 'error',
+            confirmButtonText: 'Tamam'
+          });
           setLoading(false);
           return;
         }
@@ -51,7 +57,12 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
         
         // Eğer fark 0 ise, değişiklik yok
         if (amount === 0) {
-          alert('Mevcut bakiye ile aynı tutar girildi. Değişiklik yapılmadı.');
+          await Swal.fire({
+            title: 'Bilgi',
+            text: 'Mevcut bakiye ile aynı tutar girildi. Değişiklik yapılmadı.',
+            icon: 'info',
+            confirmButtonText: 'Tamam'
+          });
           setLoading(false);
           return;
         }
@@ -88,14 +99,24 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
           });
         }
         
-        alert('İşlem başarıyla kaydedildi!');
+        await Swal.fire({
+          title: 'Başarılı!',
+          text: 'İşlem başarıyla kaydedildi!',
+          icon: 'success',
+          confirmButtonText: 'Tamam'
+        });
         onClose();
       } else {
         throw new Error('API request failed');
       }
     } catch (error) {
       console.error('Error saving transaction:', error);
-      alert('İşlem kaydedilirken bir hata oluştu.');
+      await Swal.fire({
+        title: 'Hata!',
+        text: 'İşlem kaydedilirken bir hata oluştu.',
+        icon: 'error',
+        confirmButtonText: 'Tamam'
+      });
     } finally {
       setLoading(false);
     }

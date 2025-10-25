@@ -1,5 +1,6 @@
-import { X, Download, Filter, Search, Calendar, DollarSign, CreditCard, FileText } from 'lucide-react';
+import { X, Download, Filter, Search, Calendar, DollarSign, CreditCard, FileText, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 
 interface TechnicalService {
   id: number;
@@ -101,6 +102,57 @@ export function CreditHistoryModal({ service, onClose }: CreditHistoryModalProps
     }
   };
 
+  const clearHistory = async () => {
+    const result = await Swal.fire({
+      title: 'İşlem Geçmişini Temizle',
+      text: `${service.name} servisine ait tüm işlem geçmişi silinecek. Bu işlem geri alınamaz!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Evet, Sil!',
+      cancelButtonText: 'İptal',
+      reverseButtons: true
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setLoading(true);
+        
+        const response = await fetch(`/api/admin/technical-services/${service.id}/history`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          await Swal.fire({
+            title: 'Başarılı!',
+            text: 'İşlem geçmişi başarıyla temizlendi.',
+            icon: 'success',
+            confirmButtonText: 'Tamam'
+          });
+          
+          // Geçmişi yeniden yükle
+          loadHistory();
+        } else {
+          throw new Error('Failed to clear history');
+        }
+      } catch (error) {
+        console.error('Error clearing history:', error);
+        await Swal.fire({
+          title: 'Hata!',
+          text: 'İşlem geçmişi temizlenirken bir hata oluştu.',
+          icon: 'error',
+          confirmButtonText: 'Tamam'
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'payment':
@@ -185,12 +237,21 @@ export function CreditHistoryModal({ service, onClose }: CreditHistoryModalProps
                 <p className="text-sm text-slate-600">{service.name}</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-            >
-              <X className="w-6 h-6 text-slate-500" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={clearHistory}
+                className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-sm font-medium"
+              >
+                <Trash2 className="w-4 h-4" />
+                Geçmişi Temizle
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6 text-slate-500" />
+              </button>
+            </div>
           </div>
 
           <div className="p-6">
