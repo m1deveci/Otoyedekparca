@@ -17,6 +17,7 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
     description: '',
     short_description: '',
     sku: '',
+    barcode: '',
     brand: '',
     category_id: '',
     cost_price: '',
@@ -39,6 +40,7 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
         description: product.description,
         short_description: product.short_description,
         sku: product.sku,
+        barcode: (product as any).barcode || '',
         brand: product.brand,
         category_id: product.category_id || '',
         cost_price: (product as any).cost_price?.toString() || '',
@@ -198,7 +200,7 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    SKU *
+                    Ürün Kodu (SKU) *
                   </label>
                   <input
                     type="text"
@@ -206,6 +208,20 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
                     value={formData.sku}
                     onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Ürün kodu (SKU)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Barkod Numarası
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.barcode}
+                    onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="Barkod numarası (opsiyonel)"
                   />
                 </div>
 

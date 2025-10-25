@@ -63,9 +63,31 @@ export function TechnicalServiceForm({ service, onClose }: TechnicalServiceFormP
         is_active: formData.is_active,
       };
 
-      // TODO: API endpoint'i implement et
-      console.log('Save technical service:', data);
-      
+      let response;
+      if (service) {
+        // Güncelleme
+        response = await fetch(`/api/admin/technical-services/${service.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+      } else {
+        // Yeni oluşturma
+        response = await fetch('/api/admin/technical-services', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error('API request failed');
+      }
+
       alert(service ? 'Teknik servis güncellendi!' : 'Teknik servis oluşturuldu!');
       onClose();
     } catch (error) {

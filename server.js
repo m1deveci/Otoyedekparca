@@ -281,7 +281,7 @@ app.get('/api/admin/products', async (req, res) => {
 app.post('/api/admin/products', async (req, res) => {
   try {
     const {
-      category_id, name, slug, description, short_description, sku, brand, cost_price, price, sale_price,
+      category_id, name, slug, description, short_description, sku, barcode, brand, cost_price, price, sale_price,
       stock_quantity, low_stock_threshold, image_url, images, specifications, is_featured, is_active
     } = req.body;
     
