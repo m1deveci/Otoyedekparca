@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { logActions } from '../utils/logger';
 
 interface User {
   id: string;
@@ -59,12 +60,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
       await checkAdminStatus(email);
+      
+      // Login log
+      await logActions.userLogin(userData);
     } else {
       throw new Error('Invalid credentials');
     }
   };
 
   const signOut = async () => {
+    // Logout log
+    if (user) {
+      await logActions.userLogout(user);
+    }
+    
     setUser(null);
     setIsAdmin(false);
     localStorage.removeItem('user');

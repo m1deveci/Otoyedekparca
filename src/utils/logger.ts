@@ -151,4 +151,47 @@ export const logActions = {
     description: `Sipariş silindi: #${order.id}`,
     old_values: order,
   }),
+
+  // Kullanıcı işlemleri
+  userLogin: (user: any) => logAction({
+    action: 'login',
+    entity_type: 'user',
+    entity_id: user.id,
+    description: `Kullanıcı giriş yaptı: ${user.email || user.name}`,
+    new_values: { login_time: new Date().toISOString() },
+  }),
+
+  userLogout: (user: any) => logAction({
+    action: 'logout',
+    entity_type: 'user',
+    entity_id: user.id,
+    description: `Kullanıcı çıkış yaptı: ${user.email || user.name}`,
+    new_values: { logout_time: new Date().toISOString() },
+  }),
+
+  // Veresiye satış işlemleri
+  creditSaleCreated: (service: any, totalAmount: number, productsSold: any[]) => logAction({
+    action: 'credit_sale',
+    entity_type: 'credit_sale',
+    entity_id: service.id,
+    description: `Veresiye satış yapıldı: ${service.name} - Toplam: ${totalAmount.toLocaleString('tr-TR')} ₺`,
+    new_values: { totalAmount, productsSold, serviceName: service.name },
+  }),
+
+  // Borç ödeme işlemleri
+  creditPaymentMade: (service: any, amount: number, paymentMethod: string, referenceNumber?: string) => logAction({
+    action: 'payment',
+    entity_type: 'credit_transaction',
+    entity_id: service.id,
+    description: `Borç ödemesi yapıldı: ${service.name} - ${amount.toLocaleString('tr-TR')} ₺ - ${paymentMethod}`,
+    new_values: { amount, paymentMethod, referenceNumber, serviceName: service.name },
+  }),
+
+  // Sistem işlemleri
+  systemAction: (action: string, description: string, data?: any) => logAction({
+    action,
+    entity_type: 'system',
+    description,
+    new_values: data,
+  }),
 };

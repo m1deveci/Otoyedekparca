@@ -1,5 +1,6 @@
 import { X, Save, CreditCard, DollarSign, FileText } from 'lucide-react';
 import { useState } from 'react';
+import { logActions } from '../../utils/logger';
 
 interface TechnicalService {
   id: number;

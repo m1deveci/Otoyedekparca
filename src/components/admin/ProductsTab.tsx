@@ -4,6 +4,7 @@ import { Plus, Edit, Trash2, Package, Search, Filter, Download, AlertTriangle, D
 import type { Product, Category } from '../../types';
 import { ProductForm } from './ProductForm';
 import { apiClient } from '../../lib/api';
+import { logActions } from '../../utils/logger';
 
 export function ProductsTab() {
   const location = useLocation();

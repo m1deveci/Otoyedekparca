@@ -2,6 +2,7 @@ import { X, Upload, Trash2, Calculator, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Product, Category } from '../../types';
 import { apiClient } from '../../lib/api';
+import { logActions } from '../../utils/logger';
 
 interface ProductFormProps {
   product: Product | null;
@@ -248,9 +249,11 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
       };
 
       if (product) {
-        await apiClient.updateProduct(product.id, data);
+        const updatedProduct = await apiClient.updateProduct(product.id, data);
+        await logActions.productUpdated(product, updatedProduct);
       } else {
-        await apiClient.createProduct(data);
+        const newProduct = await apiClient.createProduct(data);
+        await logActions.productCreated(newProduct);
       }
 
       onClose();

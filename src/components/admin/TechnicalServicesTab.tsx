@@ -4,6 +4,7 @@ import { TechnicalServiceForm } from './TechnicalServiceForm';
 import { CreditTransactionModal } from './CreditTransactionModal';
 import { CreditHistoryModal } from './CreditHistoryModal';
 import { CreditSaleModal } from './CreditSaleModal';
+import { logActions } from '../../utils/logger';
 
 interface TechnicalService {
   id: number;

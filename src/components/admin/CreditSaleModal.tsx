@@ -1,5 +1,6 @@
 import { X, Save, Package, Calculator, ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { logActions } from '../../utils/logger';
 
 interface TechnicalService {
   id: number;
