@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Filter } from 'lucide-react';
 import { Header } from './components/Header';
 import { ProductCard } from './components/ProductCard';
@@ -26,6 +27,7 @@ function AppContent() {
 
   const { isAdmin, loading: authLoading } = useAuth();
   const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadData();
@@ -68,6 +70,13 @@ function AppContent() {
       );
     }
 
+    console.log('Filtering products:', { 
+      totalProducts: products.length, 
+      searchQuery, 
+      selectedCategory, 
+      filteredCount: filtered.length 
+    });
+    
     setFilteredProducts(filtered);
   };
 
@@ -317,7 +326,14 @@ function AppContent() {
         }}
       />
 
-      <LoginModal isOpen={loginOpen} onClose={() => setLoginOpen(false)} />
+      <LoginModal 
+        isOpen={loginOpen} 
+        onClose={() => setLoginOpen(false)}
+        onLoginSuccess={() => {
+          setLoginOpen(false);
+          navigate('/admin');
+        }}
+      />
 
       {isAdmin && <AdminPanel isOpen={adminOpen} onClose={() => setAdminOpen(false)} />}
     </div>
@@ -328,10 +344,30 @@ function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <AppContent />
+        <Router>
+          <Routes>
+            <Route path="/" element={<AppContent />} />
+            <Route path="/admin/*" element={<AdminRoute />} />
+          </Routes>
+        </Router>
       </CartProvider>
     </AuthProvider>
   );
+}
+
+function AdminRoute() {
+  const { isAdmin } = useAuth();
+  const navigate = useNavigate();
+  
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+  
+  const handleClose = () => {
+    navigate('/');
+  };
+  
+  return <AdminPanel isOpen={true} onClose={handleClose} />;
 }
 
 export default App;

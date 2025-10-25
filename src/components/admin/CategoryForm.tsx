@@ -17,6 +17,7 @@ export function CategoryForm({ category, onClose }: CategoryFormProps) {
     image_url: '',
     display_order: '0',
     is_active: true,
+    profit_margin: '0',
   });
 
   useEffect(() => {
@@ -28,6 +29,7 @@ export function CategoryForm({ category, onClose }: CategoryFormProps) {
         image_url: category.image_url,
         display_order: category.display_order.toString(),
         is_active: category.is_active,
+        profit_margin: ((category as any).profit_margin || 0).toString(),
       });
     }
   }, [category]);
@@ -163,6 +165,25 @@ export function CategoryForm({ category, onClose }: CategoryFormProps) {
                     onChange={(e) => setFormData({ ...formData, display_order: e.target.value })}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Kar Marjı (%)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    value={formData.profit_margin}
+                    onChange={(e) => setFormData({ ...formData, profit_margin: e.target.value })}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="0.00"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Bu kategorideki ürünlerin otomatik fiyat hesaplaması için kullanılır
+                  </p>
                 </div>
 
                 <div>

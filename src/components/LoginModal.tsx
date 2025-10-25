@@ -5,9 +5,10 @@ import { useAuth } from '../context/AuthContext';
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onLoginSuccess?: () => void;
 }
 
-export function LoginModal({ isOpen, onClose }: LoginModalProps) {
+export function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,6 +25,9 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     try {
       await signIn(email, password);
       onClose();
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      }
     } catch (err) {
       setError('Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
     } finally {

@@ -93,6 +93,9 @@ export function CategoriesTab() {
                   <div>
                     <h3 className="font-semibold text-slate-900">{category.name}</h3>
                     <p className="text-xs text-slate-500">{category.slug}</p>
+                    <p className="text-xs text-green-600 font-medium">
+                      Kar Marjı: %{(category as any).profit_margin || 0}
+                    </p>
                   </div>
                 </div>
                 <span

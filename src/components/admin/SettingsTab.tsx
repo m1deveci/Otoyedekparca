@@ -18,15 +18,10 @@ export function SettingsTab() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [settingsRes, paymentRes, shippingRes] = await Promise.all([
-        supabase.from('store_settings').select('*').order('category', { ascending: true }),
-        supabase.from('payment_methods').select('*').order('display_order', { ascending: true }),
-        supabase.from('shipping_methods').select('*').order('display_order', { ascending: true }),
-      ]);
-
-      if (settingsRes.data) setSettings(settingsRes.data);
-      if (paymentRes.data) setPaymentMethods(paymentRes.data);
-      if (shippingRes.data) setShippingMethods(shippingRes.data);
+      // For now, using empty arrays since these endpoints are not implemented yet
+      setSettings([]);
+      setPaymentMethods([]);
+      setShippingMethods([]);
     } catch (error) {
       console.error('Error loading settings:', error);
     } finally {
@@ -35,36 +30,21 @@ export function SettingsTab() {
   };
 
   const updateSetting = async (key: string, value: string) => {
-    const { error } = await supabase
-      .from('store_settings')
-      .update({ value })
-      .eq('key', key);
-
-    if (!error) {
-      setSettings(prev => prev.map(s => s.key === key ? { ...s, value } : s));
-    }
+    // TODO: Implement store settings API endpoint
+    console.log('Update setting:', key, value);
+    setSettings(prev => prev.map(s => s.key === key ? { ...s, value } : s));
   };
 
   const togglePaymentMethod = async (id: string, isActive: boolean) => {
-    const { error } = await supabase
-      .from('payment_methods')
-      .update({ is_active: isActive })
-      .eq('id', id);
-
-    if (!error) {
-      setPaymentMethods(prev => prev.map(p => p.id === id ? { ...p, is_active: isActive } : p));
-    }
+    // TODO: Implement payment methods API endpoint
+    console.log('Toggle payment method:', id, isActive);
+    setPaymentMethods(prev => prev.map(p => p.id === id ? { ...p, is_active: isActive } : p));
   };
 
   const updateShippingMethod = async (id: string, updates: Partial<ShippingMethod>) => {
-    const { error } = await supabase
-      .from('shipping_methods')
-      .update(updates)
-      .eq('id', id);
-
-    if (!error) {
-      setShippingMethods(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
-    }
+    // TODO: Implement shipping methods API endpoint
+    console.log('Update shipping method:', id, updates);
+    setShippingMethods(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
   };
 
   const getSettingsByCategory = (category: string) => {

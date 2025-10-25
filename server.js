@@ -219,10 +219,16 @@ app.get('/api/admin/categories', async (req, res) => {
 
 app.post('/api/admin/categories', async (req, res) => {
   try {
-    const { name, slug, description, image_url, parent_id, display_order, is_active } = req.body;
+    const { name, slug, description, image_url, parent_id, display_order, is_active, profit_margin } = req.body;
+    
+    // Convert undefined values to null for MySQL
+    const safeParentId = parent_id === undefined ? null : parent_id;
+    const safeImageUrl = image_url === undefined ? null : image_url;
+    const safeDescription = description === undefined ? null : description;
+    
     const [result] = await pool.execute(
-      'INSERT INTO categories (name, slug, description, image_url, parent_id, display_order, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [name, slug, description, image_url, parent_id, display_order, is_active]
+      'INSERT INTO categories (name, slug, description, image_url, parent_id, display_order, is_active, profit_margin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [name, slug, safeDescription, safeImageUrl, safeParentId, display_order, is_active, profit_margin || 0]
     );
     res.json({ id: result.insertId, ...req.body });
   } catch (error) {
@@ -233,10 +239,16 @@ app.post('/api/admin/categories', async (req, res) => {
 
 app.put('/api/admin/categories/:id', async (req, res) => {
   try {
-    const { name, slug, description, image_url, parent_id, display_order, is_active } = req.body;
+    const { name, slug, description, image_url, parent_id, display_order, is_active, profit_margin } = req.body;
+    
+    // Convert undefined values to null for MySQL
+    const safeParentId = parent_id === undefined ? null : parent_id;
+    const safeImageUrl = image_url === undefined ? null : image_url;
+    const safeDescription = description === undefined ? null : description;
+    
     await pool.execute(
-      'UPDATE categories SET name = ?, slug = ?, description = ?, image_url = ?, parent_id = ?, display_order = ?, is_active = ? WHERE id = ?',
-      [name, slug, description, image_url, parent_id, display_order, is_active, req.params.id]
+      'UPDATE categories SET name = ?, slug = ?, description = ?, image_url = ?, parent_id = ?, display_order = ?, is_active = ?, profit_margin = ? WHERE id = ?',
+      [name, slug, safeDescription, safeImageUrl, safeParentId, display_order, is_active, profit_margin || 0, req.params.id]
     );
     res.json({ success: true });
   } catch (error) {
@@ -269,13 +281,13 @@ app.get('/api/admin/products', async (req, res) => {
 app.post('/api/admin/products', async (req, res) => {
   try {
     const {
-      category_id, name, slug, description, short_description, sku, brand, price, sale_price,
+      category_id, name, slug, description, short_description, sku, brand, cost_price, price, sale_price,
       stock_quantity, low_stock_threshold, image_url, images, specifications, is_featured, is_active
     } = req.body;
     
     const [result] = await pool.execute(
-      'INSERT INTO products (category_id, name, slug, description, short_description, sku, brand, price, sale_price, stock_quantity, low_stock_threshold, image_url, images, specifications, is_featured, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [category_id, name, slug, description, short_description, sku, brand, price, sale_price, stock_quantity, low_stock_threshold, image_url, JSON.stringify(images), JSON.stringify(specifications), is_featured, is_active]
+      'INSERT INTO products (category_id, name, slug, description, short_description, sku, brand, cost_price, price, sale_price, stock_quantity, low_stock_threshold, image_url, images, specifications, is_featured, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [category_id, name, slug, description, short_description, sku, brand, cost_price, price, sale_price, stock_quantity, low_stock_threshold, image_url, JSON.stringify(images), JSON.stringify(specifications), is_featured, is_active]
     );
     res.json({ id: result.insertId, ...req.body });
   } catch (error) {
@@ -287,13 +299,13 @@ app.post('/api/admin/products', async (req, res) => {
 app.put('/api/admin/products/:id', async (req, res) => {
   try {
     const {
-      category_id, name, slug, description, short_description, sku, brand, price, sale_price,
+      category_id, name, slug, description, short_description, sku, brand, cost_price, price, sale_price,
       stock_quantity, low_stock_threshold, image_url, images, specifications, is_featured, is_active
     } = req.body;
     
     await pool.execute(
-      'UPDATE products SET category_id = ?, name = ?, slug = ?, description = ?, short_description = ?, sku = ?, brand = ?, price = ?, sale_price = ?, stock_quantity = ?, low_stock_threshold = ?, image_url = ?, images = ?, specifications = ?, is_featured = ?, is_active = ? WHERE id = ?',
-      [category_id, name, slug, description, short_description, sku, brand, price, sale_price, stock_quantity, low_stock_threshold, image_url, JSON.stringify(images), JSON.stringify(specifications), is_featured, is_active, req.params.id]
+      'UPDATE products SET category_id = ?, name = ?, slug = ?, description = ?, short_description = ?, sku = ?, brand = ?, cost_price = ?, price = ?, sale_price = ?, stock_quantity = ?, low_stock_threshold = ?, image_url = ?, images = ?, specifications = ?, is_featured = ?, is_active = ? WHERE id = ?',
+      [category_id, name, slug, description, short_description, sku, brand, cost_price, price, sale_price, stock_quantity, low_stock_threshold, image_url, JSON.stringify(images), JSON.stringify(specifications), is_featured, is_active, req.params.id]
     );
     res.json({ success: true });
   } catch (error) {

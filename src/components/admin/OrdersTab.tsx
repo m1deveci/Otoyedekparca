@@ -15,13 +15,8 @@ export function OrdersTab() {
 
   const loadOrders = async () => {
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setOrders(data || []);
+      const data = await apiClient.getOrders();
+      setOrders(data);
     } catch (error) {
       console.error('Error loading orders:', error);
     } finally {
@@ -31,12 +26,7 @@ export function OrdersTab() {
 
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({ status })
-        .eq('id', orderId);
-
-      if (error) throw error;
+      await apiClient.updateOrderStatus(parseInt(orderId), status);
       loadOrders();
     } catch (error) {
       console.error('Error updating order:', error);
