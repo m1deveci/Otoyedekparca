@@ -49,22 +49,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    // For demo purposes, we'll use a simple authentication
-    // In a real app, you'd make an API call to authenticate
-    if (email === 'admin@otoridvan.com' && password === 'admin123') {
-      const userData = {
-        id: '1',
-        email: email,
-        name: 'Admin User'
-      };
+    // Input validation
+    if (!email || !password) {
+      throw new Error('Email and password are required');
+    }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error('Invalid email format');
+    }
+    
+    // Password length validation
+    if (password.length < 6) {
+      throw new Error('Password must be at least 6 characters');
+    }
+    
+    try {
+      // Make API call to authenticate
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Authentication failed');
+      }
+      
+      const userData = await response.json();
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
       await checkAdminStatus(email);
       
       // Login log
       await logActions.userLogin(userData);
-    } else {
-      throw new Error('Invalid credentials');
+    } catch (error) {
+      console.error('Login error:', error);
+      throw new Error('Authentication failed. Please check your credentials.');
     }
   };
 

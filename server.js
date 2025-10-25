@@ -2,23 +2,99 @@ import express from 'express';
 import mysql from 'mysql2/promise';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import { body, validationResult } from 'express-validator';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// Security middleware
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['https://otoridvan.devkit.com.tr'];
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Body parsing with size limits
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Helmet for security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests from this IP, please try again later.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api/', limiter);
+
+// Input validation middleware
+const validateInput = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      error: 'Validation failed',
+      details: errors.array()
+    });
+  }
+  next();
+};
+
+// Sanitize input data
+const sanitizeInput = (req, res, next) => {
+  if (req.body) {
+    // Remove potential XSS attempts
+    Object.keys(req.body).forEach(key => {
+      if (typeof req.body[key] === 'string') {
+        req.body[key] = req.body[key]
+          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+          .replace(/javascript:/gi, '')
+          .replace(/on\w+\s*=/gi, '');
+      }
+    });
+  }
+  next();
+};
+
+app.use(sanitizeInput);
 
 // Database connection
 const dbConfig = {
-  host: 'localhost',
-  user: 'otoridvan_user',
-  password: 'Deveci1453',
-  database: 'otoridvan_db',
-  charset: 'utf8mb4'
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'otoridvan_user',
+  password: process.env.DB_PASSWORD || 'Deveci1453',
+  database: process.env.DB_NAME || 'otoridvan_db',
+  charset: process.env.DB_CHARSET || 'utf8mb4'
 };
 
 // Create connection pool
@@ -205,6 +281,40 @@ const createTables = async () => {
 
 // Initialize tables
 createTables();
+
+// Authentication endpoints
+app.post('/api/auth/login', [
+  body('email').isEmail().normalizeEmail(),
+  body('password').isLength({ min: 6 }).trim(),
+  validateInput
+], async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // For demo purposes - in production, use proper password hashing
+    if (email === 'admin@otoridvan.com' && password === 'admin123') {
+      const userData = {
+        id: '1',
+        email: email,
+        name: 'Admin User',
+        role: 'admin'
+      };
+      
+      res.json(userData);
+    } else {
+      res.status(401).json({
+        error: 'Invalid credentials',
+        message: 'Email or password is incorrect'
+      });
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Authentication failed'
+    });
+  }
+});
 
 // Routes
 
@@ -795,6 +905,33 @@ app.post('/api/admin/system-logs', async (req, res) => {
 });
 
 // Start server
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  
+  // Don't leak error details in production
+  if (process.env.NODE_ENV === 'production') {
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Something went wrong'
+    });
+  } else {
+    res.status(500).json({
+      error: err.message,
+      stack: err.stack
+    });
+  }
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Not found',
+    message: 'The requested resource was not found'
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
