@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, Package, ShoppingBag, FolderOpen, LogOut, LayoutDashboard, Settings, Menu, Building2 } from 'lucide-react';
+import { X, Package, ShoppingBag, FolderOpen, LogOut, LayoutDashboard, Settings, Menu, Building2, Activity } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { DashboardTab } from './DashboardTab';
 import { ProductsTab } from './ProductsTab';
@@ -8,6 +8,7 @@ import { CategoriesTab } from './CategoriesTab';
 import { OrdersTab } from './OrdersTab';
 import { TechnicalServicesTab } from './TechnicalServicesTab';
 import { SettingsTab } from './SettingsTab';
+import { SystemLogsTab } from './SystemLogsTab';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -15,7 +16,7 @@ interface AdminPanelProps {
 }
 
 export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'categories' | 'orders' | 'technical-services' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'categories' | 'orders' | 'technical-services' | 'settings' | 'system-logs'>('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { signOut } = useAuth();
   const navigate = useNavigate();
@@ -34,6 +35,8 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
           setActiveTab('technical-services');
         } else if (path.includes('/admin/settings')) {
           setActiveTab('settings');
+        } else if (path.includes('/admin/system-logs')) {
+          setActiveTab('system-logs');
         } else {
           setActiveTab('dashboard');
         }
@@ -46,7 +49,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     onClose();
   };
 
-      const handleTabChange = (tab: 'dashboard' | 'products' | 'categories' | 'orders' | 'technical-services' | 'settings') => {
+      const handleTabChange = (tab: 'dashboard' | 'products' | 'categories' | 'orders' | 'technical-services' | 'settings' | 'system-logs') => {
         setActiveTab(tab);
         const tabPaths = {
           dashboard: '/admin',
@@ -54,7 +57,8 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
           categories: '/admin/categories',
           orders: '/admin/orders',
           'technical-services': '/admin/technical-services',
-          settings: '/admin/settings'
+          settings: '/admin/settings',
+          'system-logs': '/admin/system-logs'
         };
         navigate(tabPaths[tab]);
       };
@@ -173,6 +177,18 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 <Settings className="w-5 h-5" />
                 <span className="font-semibold">Ayarlar</span>
               </button>
+
+              <button
+                onClick={() => handleTabChange('system-logs')}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  activeTab === 'system-logs'
+                    ? 'bg-orange-500 text-white'
+                    : 'text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                <Activity className="w-5 h-5" />
+                <span className="font-semibold">Sistem Logları</span>
+              </button>
             </nav>
           </div>
 
@@ -279,6 +295,21 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                     <Settings className="w-5 h-5" />
                     <span className="font-semibold">Ayarlar</span>
                   </button>
+
+                  <button
+                    onClick={() => {
+                      handleTabChange('system-logs');
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      activeTab === 'system-logs'
+                        ? 'bg-orange-500 text-white'
+                        : 'text-slate-300 hover:bg-slate-700'
+                    }`}
+                  >
+                    <Activity className="w-5 h-5" />
+                    <span className="font-semibold">Sistem Logları</span>
+                  </button>
                 </nav>
               </div>
             </div>
@@ -291,6 +322,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 {activeTab === 'orders' && <OrdersTab />}
                 {activeTab === 'technical-services' && <TechnicalServicesTab />}
                 {activeTab === 'settings' && <SettingsTab />}
+                {activeTab === 'system-logs' && <SystemLogsTab />}
               </div>
         </div>
       </div>

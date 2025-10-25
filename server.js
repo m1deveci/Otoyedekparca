@@ -572,6 +572,52 @@ app.post('/api/admin/technical-services/:id/history', async (req, res) => {
   }
 });
 
+// System logs endpoints
+app.get('/api/admin/system-logs', async (req, res) => {
+  try {
+    const { page = 1, limit = 50, action, entity_type } = req.query;
+    const offset = (page - 1) * limit;
+    
+    let query = 'SELECT * FROM system_logs WHERE 1=1';
+    const params = [];
+    
+    if (action) {
+      query += ' AND action = ?';
+      params.push(action);
+    }
+    
+    if (entity_type) {
+      query += ' AND entity_type = ?';
+      params.push(entity_type);
+    }
+    
+    query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+    params.push(parseInt(limit), offset);
+    
+    const [rows] = await pool.execute(query, params);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching system logs:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/admin/system-logs', async (req, res) => {
+  try {
+    const { user_id, action, entity_type, entity_id, description, old_values, new_values, ip_address, user_agent } = req.body;
+    
+    const [result] = await pool.execute(
+      'INSERT INTO system_logs (user_id, action, entity_type, entity_id, description, old_values, new_values, ip_address, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [user_id, action, entity_type, entity_id, description, JSON.stringify(old_values), JSON.stringify(new_values), ip_address, user_agent]
+    );
+    
+    res.json({ id: result.insertId, ...req.body });
+  } catch (error) {
+    console.error('Error creating system log:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
