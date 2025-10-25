@@ -457,13 +457,15 @@ app.post('/api/admin/products', async (req, res) => {
       stock_quantity, low_stock_threshold, image_url, images, specifications, is_featured, is_active
     } = req.body;
     
+    console.log('Received cost_price:', cost_price, 'Type:', typeof cost_price); // Debug için
+    
     // Convert undefined values to null for MySQL
     const safeDescription = description === undefined ? null : description;
     const safeShortDescription = short_description === undefined ? null : short_description;
     const safeImageUrl = image_url === undefined ? null : image_url;
     const safeImages = images === undefined ? null : JSON.stringify(images);
     const safeSpecifications = specifications === undefined ? null : JSON.stringify(specifications);
-    const safeCostPrice = cost_price === undefined ? null : cost_price;
+    const safeCostPrice = cost_price === undefined || cost_price === '' ? null : parseFloat(cost_price);
     const safeSalePrice = sale_price === undefined ? null : sale_price;
     
     const [result] = await pool.execute(
@@ -484,13 +486,15 @@ app.put('/api/admin/products/:id', async (req, res) => {
       stock_quantity, low_stock_threshold, image_url, images, specifications, is_featured, is_active
     } = req.body;
     
+    console.log('Update - Received cost_price:', cost_price, 'Type:', typeof cost_price); // Debug için
+    
     // Convert undefined values to null for MySQL
     const safeDescription = description === undefined ? null : description;
     const safeShortDescription = short_description === undefined ? null : short_description;
     const safeImageUrl = image_url === undefined ? null : image_url;
     const safeImages = images === undefined ? null : JSON.stringify(images);
     const safeSpecifications = specifications === undefined ? null : JSON.stringify(specifications);
-    const safeCostPrice = cost_price === undefined ? null : cost_price;
+    const safeCostPrice = cost_price === undefined || cost_price === '' ? null : parseFloat(cost_price);
     const safeSalePrice = sale_price === undefined ? null : sale_price;
     
     await pool.execute(
