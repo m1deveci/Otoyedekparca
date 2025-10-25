@@ -187,6 +187,24 @@ export const logActions = {
     new_values: { amount, paymentMethod, referenceNumber, serviceName: service.name },
   }),
 
+  // Stok işlemleri
+  stockAdded: (product: any, quantity: number, costPrice: number, supplier: string, notes?: string) => logAction({
+    action: 'stock_added',
+    entity_type: 'product',
+    entity_id: product.id,
+    description: `Stok eklendi: ${product.name} - ${quantity} adet - ${costPrice.toLocaleString('tr-TR', { style: 'currency', currency: 'TRY' })} - Tedarikçi: ${supplier}`,
+    new_values: { quantity, costPrice, supplier, notes, productName: product.name },
+  }),
+
+  stockUpdated: (product: any, oldQuantity: number, newQuantity: number, reason: string) => logAction({
+    action: 'stock_updated',
+    entity_type: 'product',
+    entity_id: product.id,
+    description: `Stok güncellendi: ${product.name} - ${oldQuantity} → ${newQuantity} adet - Sebep: ${reason}`,
+    old_values: { quantity: oldQuantity },
+    new_values: { quantity: newQuantity, reason, productName: product.name },
+  }),
+
   // Sistem işlemleri
   systemAction: (action: string, description: string, data?: any) => logAction({
     action,

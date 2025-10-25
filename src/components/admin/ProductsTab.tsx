@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Plus, Edit, Trash2, Package, Search, Filter, Download, AlertTriangle, Droplets, Wrench } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Search, Filter, Download, AlertTriangle, Droplets, Wrench, PackagePlus } from 'lucide-react';
 import type { Product, Category } from '../../types';
 import { ProductForm } from './ProductForm';
+import { StockAddModal } from './StockAddModal';
 import { apiClient } from '../../lib/api';
 import { logActions } from '../../utils/logger';
 
@@ -12,7 +13,9 @@ export function ProductsTab() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showStockModal, setShowStockModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState('');
@@ -212,6 +215,17 @@ export function ProductsTab() {
   const handleFormClose = () => {
     setShowForm(false);
     setEditingProduct(null);
+    loadProducts();
+  };
+
+  const handleStockAdd = (product: Product) => {
+    setSelectedProduct(product);
+    setShowStockModal(true);
+  };
+
+  const handleStockModalClose = () => {
+    setShowStockModal(false);
+    setSelectedProduct(null);
     loadProducts();
   };
 
@@ -486,14 +500,23 @@ export function ProductsTab() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
+                          onClick={() => handleStockAdd(product)}
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          title="Stok Ekle"
+                        >
+                          <PackagePlus className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => handleEdit(product)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Düzenle"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(product.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Sil"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -571,6 +594,13 @@ export function ProductsTab() {
           product={editingProduct}
           categories={categories}
           onClose={handleFormClose}
+        />
+      )}
+
+      {showStockModal && selectedProduct && (
+        <StockAddModal
+          product={selectedProduct}
+          onClose={handleStockModalClose}
         />
       )}
     </div>

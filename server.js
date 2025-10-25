@@ -850,16 +850,16 @@ app.post('/api/admin/technical-services/:id/sales', async (req, res) => {
 // Stock management endpoint
 app.put('/api/admin/products/:id/stock', async (req, res) => {
   try {
-    const { quantity, operation } = req.body;
+    const { quantity, operation, cost_price, supplier, notes, purchase_date } = req.body;
     const productId = req.params.id;
     
     if (!quantity || !operation) {
       return res.status(400).json({ error: 'Quantity and operation are required' });
     }
     
-    // Get current stock
+    // Get current stock and product info
     const [rows] = await pool.execute(
-      'SELECT stock_quantity FROM products WHERE id = ?',
+      'SELECT stock_quantity, cost_price, name FROM products WHERE id = ?',
       [productId]
     );
     
@@ -868,6 +868,8 @@ app.put('/api/admin/products/:id/stock', async (req, res) => {
     }
     
     const currentStock = rows[0].stock_quantity;
+    const currentCostPrice = rows[0].cost_price;
+    const productName = rows[0].name;
     let newStock;
     
     if (operation === 'decrease') {
@@ -884,14 +886,45 @@ app.put('/api/admin/products/:id/stock', async (req, res) => {
       [newStock, productId]
     );
     
+    // If cost_price is provided and operation is increase, update cost_price
+    if (operation === 'increase' && cost_price) {
+      await pool.execute(
+        'UPDATE products SET cost_price = ? WHERE id = ?',
+        [cost_price, productId]
+      );
+    }
+    
+    // Log stock transaction if it's an increase with additional info
+    if (operation === 'increase' && (supplier || notes || purchase_date)) {
+      await pool.execute(
+        'INSERT INTO stock_transactions (product_id, transaction_type, quantity, cost_price, supplier, notes, purchase_date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
+        [productId, 'stock_add', quantity, cost_price || currentCostPrice, supplier, notes, purchase_date]
+      );
+    }
+    
     res.json({ 
       success: true, 
       previous_stock: currentStock, 
       new_stock: newStock,
-      change: operation === 'decrease' ? -quantity : quantity
+      change: operation === 'decrease' ? -quantity : quantity,
+      product_name: productName
     });
   } catch (error) {
     console.error('Error updating stock:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Stock transactions history endpoint
+app.get('/api/admin/products/:id/stock-history', async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      'SELECT * FROM stock_transactions WHERE product_id = ? ORDER BY created_at DESC',
+      [req.params.id]
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching stock history:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
