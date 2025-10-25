@@ -33,6 +33,7 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
   const [imagePreview, setImagePreview] = useState<string>('');
   const [showBrandForm, setShowBrandForm] = useState(false);
   const [newBrand, setNewBrand] = useState('');
+  const [autoGenerateSku, setAutoGenerateSku] = useState(true);
 
   useEffect(() => {
     if (product) {
@@ -117,11 +118,68 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
     });
   };
 
-  const handleAddBrand = () => {
+  const handleAddBrand = async () => {
     if (newBrand.trim()) {
-      setFormData({ ...formData, brand: newBrand.trim() });
+      const brandName = newBrand.trim();
+      setFormData({ ...formData, brand: brandName });
+      
+      // Otomatik SKU oluştur
+      if (autoGenerateSku) {
+        const newSku = await generateSku(brandName);
+        if (newSku) {
+          setFormData(prev => ({ ...prev, sku: newSku }));
+        }
+      }
+      
       setNewBrand('');
       setShowBrandForm(false);
+    }
+  };
+
+  const generateSku = async (brand: string) => {
+    if (!brand.trim()) return '';
+    
+    try {
+      // Mevcut ürünleri yükle
+      const products = await apiClient.getProducts();
+      
+      // Aynı markaya sahip ürünleri filtrele
+      const brandProducts = products.filter(p => 
+        p.brand.toLowerCase() === brand.toLowerCase()
+      );
+      
+      // Marka kısaltması oluştur (ilk 3 harf)
+      const brandPrefix = brand.substring(0, 3).toUpperCase();
+      
+      // Mevcut SKU'ları kontrol et ve en yüksek numarayı bul
+      let maxNumber = 0;
+      brandProducts.forEach(product => {
+        if (product.sku && product.sku.startsWith(brandPrefix)) {
+          const numberPart = product.sku.substring(brandPrefix.length);
+          const number = parseInt(numberPart);
+          if (!isNaN(number) && number > maxNumber) {
+            maxNumber = number;
+          }
+        }
+      });
+      
+      // Yeni SKU oluştur
+      const newNumber = maxNumber + 1;
+      return `${brandPrefix}${newNumber.toString().padStart(3, '0')}`;
+    } catch (error) {
+      console.error('Error generating SKU:', error);
+      return '';
+    }
+  };
+
+  const handleBrandChange = async (brand: string) => {
+    setFormData({ ...formData, brand });
+    
+    if (autoGenerateSku && brand.trim()) {
+      const newSku = await generateSku(brand);
+      if (newSku) {
+        setFormData(prev => ({ ...prev, sku: newSku }));
+      }
     }
   };
 
@@ -209,17 +267,37 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Ürün Kodu (SKU) *
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-semibold text-slate-700">
+                      Ürün Kodu (SKU) *
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="autoGenerateSku"
+                        checked={autoGenerateSku}
+                        onChange={(e) => setAutoGenerateSku(e.target.checked)}
+                        className="w-4 h-4 text-orange-500 border-slate-300 rounded focus:ring-orange-500"
+                      />
+                      <label htmlFor="autoGenerateSku" className="text-xs text-slate-600">
+                        Otomatik oluştur
+                      </label>
+                    </div>
+                  </div>
                   <input
                     type="text"
                     required
                     value={formData.sku}
                     onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="Ürün kodu (SKU)"
+                    placeholder={autoGenerateSku ? "Marka seçildiğinde otomatik oluşturulacak" : "Ürün kodu (SKU)"}
+                    disabled={autoGenerateSku}
                   />
+                  {autoGenerateSku && (
+                    <p className="text-xs text-slate-500 mt-1">
+                      Marka seçildiğinde otomatik olarak oluşturulacak (örn: BOS001, MAN002)
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -243,7 +321,7 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
                     <input
                       type="text"
                       value={formData.brand}
-                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                      onChange={(e) => handleBrandChange(e.target.value)}
                       className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
                       placeholder="Marka adını girin"
                     />
