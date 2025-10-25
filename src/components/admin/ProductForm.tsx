@@ -96,6 +96,12 @@ export function ProductForm({ product, categories, onClose }: ProductFormProps) 
     if (costPrice > 0 && profitMargin > 0) {
       const calculatedPrice = costPrice * (1 + profitMargin / 100);
       setFormData(prev => ({ ...prev, price: calculatedPrice.toFixed(2) }));
+    } else if (costPrice > 0 && profitMargin === 0) {
+      alert('Seçilen kategorinin kar marjı belirlenmemiş. Lütfen önce kategoriyi düzenleyin.');
+    } else if (costPrice === 0) {
+      alert('Lütfen alış fiyatını girin.');
+    } else {
+      alert('Lütfen bir kategori seçin.');
     }
   };
 
