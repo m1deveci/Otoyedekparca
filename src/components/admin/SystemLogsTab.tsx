@@ -131,23 +131,24 @@ export function SystemLogsTab() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Sistem Logları</h2>
-          <p className="text-slate-600">Tüm sistem işlemlerinin kayıtları</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Sistem Logları</h2>
+          <p className="text-sm sm:text-base text-slate-600">Tüm sistem işlemlerinin kayıtları</p>
         </div>
         <button
           onClick={exportLogs}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors w-full sm:w-auto"
         >
           <Download className="w-4 h-4" />
-          Dışa Aktar
+          <span className="hidden sm:inline">Dışa Aktar</span>
+          <span className="sm:hidden">Dışa Aktar</span>
         </button>
       </div>
 
       {/* Filters */}
       <div className="bg-white border border-slate-200 rounded-lg p-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-2">
               İşlem Türü
@@ -155,7 +156,7 @@ export function SystemLogsTab() {
             <select
               value={filters.action}
               onChange={(e) => setFilters({ ...filters, action: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
             >
               <option value="">Tümü</option>
               <option value="created">Oluşturuldu</option>
@@ -173,7 +174,7 @@ export function SystemLogsTab() {
             <select
               value={filters.entity_type}
               onChange={(e) => setFilters({ ...filters, entity_type: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
             >
               <option value="">Tümü</option>
               <option value="category">Kategori</option>
@@ -194,7 +195,7 @@ export function SystemLogsTab() {
                 type="text"
                 value={filters.search}
                 onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
                 placeholder="Açıklama, varlık türü..."
               />
             </div>
@@ -203,7 +204,7 @@ export function SystemLogsTab() {
           <div className="flex items-end">
             <button
               onClick={() => setFilters({ action: '', entity_type: '', search: '' })}
-              className="w-full px-4 py-2 text-slate-600 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+              className="w-full px-4 py-2 text-slate-600 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors text-sm"
             >
               Temizle
             </button>
@@ -225,42 +226,44 @@ export function SystemLogsTab() {
         ) : (
           <div className="divide-y divide-slate-200">
             {logs.map((log) => (
-              <div key={log.id} className="p-4 hover:bg-slate-50 transition-colors">
-                <div className="flex items-start gap-4">
-                  <div className="flex items-center gap-2">
+              <div key={log.id} className="p-3 sm:p-4 hover:bg-slate-50 transition-colors">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                     {getActionIcon(log.action)}
                     {getEntityIcon(log.entity_type)}
                   </div>
                   
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getActionColor(log.action)}`}>
-                        {log.action}
-                      </span>
-                      <span className="text-sm text-slate-600">
-                        {log.entity_type}
-                      </span>
-                      <span className="text-sm text-slate-500">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getActionColor(log.action)}`}>
+                          {log.action}
+                        </span>
+                        <span className="text-xs sm:text-sm text-slate-600">
+                          {log.entity_type}
+                        </span>
+                      </div>
+                      <span className="text-xs sm:text-sm text-slate-500">
                         #{log.entity_id}
                       </span>
                     </div>
                     
-                    <p className="text-slate-900 font-medium mb-1">
+                    <p className="text-sm sm:text-base text-slate-900 font-medium mb-2 break-words">
                       {log.description}
                     </p>
                     
-                    <div className="flex items-center gap-4 text-sm text-slate-500">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-slate-500">
                       <div className="flex items-center gap-1">
-                        <User className="w-3 h-3" />
-                        {log.user_id || 'Sistem'}
+                        <User className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{log.user_id || 'Sistem'}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {formatDate(log.created_at)}
+                        <Clock className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{formatDate(log.created_at)}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Activity className="w-3 h-3" />
-                        {log.ip_address}
+                        <Activity className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{log.ip_address}</span>
                       </div>
                     </div>
                   </div>
