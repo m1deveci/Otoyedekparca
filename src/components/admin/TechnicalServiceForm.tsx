@@ -59,7 +59,7 @@ export function TechnicalServiceForm({ service, onClose }: TechnicalServiceFormP
         email: formData.email,
         address: formData.address,
         tax_number: formData.tax_number,
-        credit_limit: parseFloat(formData.credit_limit) || 0,
+        credit_limit: parseFloat(formData.credit_limit.replace(/\./g, '').replace(',', '.')) || 0,
         is_active: formData.is_active,
       };
 
@@ -188,23 +188,30 @@ export function TechnicalServiceForm({ service, onClose }: TechnicalServiceFormP
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Kredi Limiti (₺)
-                </label>
-                <div className="relative">
-                  <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.credit_limit}
-                    onChange={(e) => setFormData({ ...formData, credit_limit: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="0.00"
-                  />
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Kredi Limiti (₺)
+                  </label>
+                  <div className="relative">
+                    <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <input
+                      type="text"
+                      value={formData.credit_limit}
+                      onChange={(e) => {
+                        // Sadece rakam ve nokta/virgül kabul et
+                        const value = e.target.value.replace(/[^0-9.,]/g, '');
+                        setFormData({ ...formData, credit_limit: value });
+                      }}
+                      onBlur={(e) => {
+                        // Türk para birimi formatına çevir
+                        const numValue = parseFloat(e.target.value.replace(',', '.')) || 0;
+                        setFormData({ ...formData, credit_limit: numValue.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) });
+                      }}
+                      className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="0,00"
+                    />
+                  </div>
                 </div>
-              </div>
             </div>
 
             <div>

@@ -28,7 +28,8 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
     setLoading(true);
 
     try {
-      let amount = parseFloat(formData.amount);
+      // Türk para birimi formatından sayıya çevir
+      let amount = parseFloat(formData.amount.replace(/\./g, '').replace(',', '.')) || 0;
       
       // Ödeme türü için kontrol
       if (transactionType === 'payment') {
@@ -78,7 +79,7 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
   const handleFullBalanceToggle = () => {
     setUseFullBalance(!useFullBalance);
     if (!useFullBalance) {
-      setFormData({ ...formData, amount: (service.current_balance || 0).toString() });
+      setFormData({ ...formData, amount: (service.current_balance || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) });
     } else {
       setFormData({ ...formData, amount: '' });
     }
@@ -177,15 +178,21 @@ export function CreditTransactionModal({ service, onClose }: CreditTransactionMo
                     </label>
                   </div>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max={transactionType === 'payment' ? (service.current_balance || 0) : undefined}
+                    type="text"
                     required
                     value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                    onChange={(e) => {
+                      // Sadece rakam ve nokta/virgül kabul et
+                      const value = e.target.value.replace(/[^0-9.,]/g, '');
+                      setFormData({ ...formData, amount: value });
+                    }}
+                    onBlur={(e) => {
+                      // Türk para birimi formatına çevir
+                      const numValue = parseFloat(e.target.value.replace(',', '.')) || 0;
+                      setFormData({ ...formData, amount: numValue.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) });
+                    }}
                     className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="0.00"
+                    placeholder="0,00"
                     disabled={useFullBalance}
                   />
                   {transactionType === 'payment' && (service.current_balance || 0) > 0 && (

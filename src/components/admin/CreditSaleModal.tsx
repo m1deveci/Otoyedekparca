@@ -176,13 +176,22 @@ export function CreditSaleModal({ service, onClose }: CreditSaleModalProps) {
                   Birim Fiyat (₺) *
                 </label>
                 <input
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type="text"
                   required
-                  value={unitPrice}
-                  onChange={(e) => setUnitPrice(parseFloat(e.target.value) || 0)}
+                  value={unitPrice.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  onChange={(e) => {
+                    // Sadece rakam ve nokta/virgül kabul et
+                    const value = e.target.value.replace(/[^0-9.,]/g, '');
+                    const numValue = parseFloat(value.replace(',', '.')) || 0;
+                    setUnitPrice(numValue);
+                  }}
+                  onBlur={(e) => {
+                    // Türk para birimi formatına çevir
+                    const numValue = parseFloat(e.target.value.replace(',', '.')) || 0;
+                    setUnitPrice(numValue);
+                  }}
                   className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  placeholder="0,00"
                 />
               </div>
 
@@ -193,12 +202,21 @@ export function CreditSaleModal({ service, onClose }: CreditSaleModalProps) {
                 </label>
                 <div className="flex items-center gap-2">
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={totalAmount}
-                    onChange={(e) => setTotalAmount(parseFloat(e.target.value) || 0)}
+                    type="text"
+                    value={totalAmount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    onChange={(e) => {
+                      // Sadece rakam ve nokta/virgül kabul et
+                      const value = e.target.value.replace(/[^0-9.,]/g, '');
+                      const numValue = parseFloat(value.replace(',', '.')) || 0;
+                      setTotalAmount(numValue);
+                    }}
+                    onBlur={(e) => {
+                      // Türk para birimi formatına çevir
+                      const numValue = parseFloat(e.target.value.replace(',', '.')) || 0;
+                      setTotalAmount(numValue);
+                    }}
                     className="flex-1 px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    placeholder="0,00"
                   />
                   <button
                     type="button"
