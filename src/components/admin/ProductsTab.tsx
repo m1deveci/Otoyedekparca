@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Package } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Search, Filter, Download, AlertTriangle, Droplets, Wrench } from 'lucide-react';
 import type { Product, Category } from '../../types';
 import { ProductForm } from './ProductForm';
 import { apiClient } from '../../lib/api';
@@ -10,11 +10,106 @@ export function ProductsTab() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     loadProducts();
     loadCategories();
   }, []);
+
+  useEffect(() => {
+    filterProducts();
+  }, [products, searchQuery, selectedCategory]);
+
+  const filterProducts = () => {
+    let filtered = [...products];
+
+    // Search filter
+    if (searchQuery) {
+      filtered = filtered.filter(product => 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.sku?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.barcode?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Category filter
+    if (selectedCategory) {
+      filtered = filtered.filter(product => product.category_id === parseInt(selectedCategory));
+    }
+
+    setFilteredProducts(filtered);
+  };
+
+  // Statistics calculation
+  const getProductStats = () => {
+    const totalProducts = products.length;
+    const filterProducts = products.filter(p => p.category_id === 1); // Filtreler kategorisi
+    const oilProducts = products.filter(p => p.category_id === 4); // Madeni Yağlar kategorisi
+    const lowStockProducts = products.filter(p => p.stock_quantity < 10); // Kritik stok
+
+    return {
+      total: totalProducts,
+      filters: filterProducts.length,
+      oils: oilProducts.length,
+      lowStock: lowStockProducts.length
+    };
+  };
+
+  const handleStatClick = (type: string) => {
+    switch (type) {
+      case 'filters':
+        setSelectedCategory('1'); // Filtreler kategorisi ID'si
+        setSearchQuery('');
+        break;
+      case 'oils':
+        setSelectedCategory('4'); // Madeni Yağlar kategorisi ID'si
+        setSearchQuery('');
+        break;
+      case 'lowStock':
+        // Kritik stok filtreleme için özel logic
+        setSearchQuery('');
+        setSelectedCategory('');
+        // Kritik stok filtreleme için özel state ekleyelim
+        setFilteredProducts(products.filter(p => p.stock_quantity < 10));
+        break;
+      case 'all':
+      default:
+        setSearchQuery('');
+        setSelectedCategory('');
+        setFilteredProducts(products);
+    }
+  };
+
+  const exportProducts = () => {
+    const headers = ['ID', 'Ürün Adı', 'SKU', 'Barkod', 'Kategori', 'Stok', 'Fiyat', 'Maliyet Fiyatı'];
+    const csvRows = [
+      headers.join(';'),
+      ...filteredProducts.map(product => [
+        product.id,
+        product.name,
+        product.sku || '',
+        product.barcode || '',
+        categories.find(c => c.id === product.category_id)?.name || '',
+        product.stock_quantity,
+        product.price,
+        product.cost_price || ''
+      ].join(';'))
+    ];
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', `urunler_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const loadProducts = async () => {
     try {
@@ -68,23 +163,155 @@ export function ProductsTab() {
     return <div className="p-8 text-center text-slate-600">Yükleniyor...</div>;
   }
 
+  const stats = getProductStats();
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Ürünler</h2>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors w-full sm:w-auto"
-        >
-          <Plus className="w-5 h-5" />
-          Yeni Ürün
-        </button>
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Ürünler</h2>
+          <p className="text-sm text-slate-600">Toplam {filteredProducts.length} ürün</p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center justify-center gap-2 bg-slate-500 hover:bg-slate-600 text-white px-4 py-2 rounded-lg transition-colors w-full sm:w-auto"
+          >
+            <Filter className="w-4 h-4" />
+            Filtreler
+          </button>
+          <button
+            onClick={exportProducts}
+            className="flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors w-full sm:w-auto"
+          >
+            <Download className="w-4 h-4" />
+            Dışa Aktar
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors w-full sm:w-auto"
+          >
+            <Plus className="w-5 h-5" />
+            Yeni Ürün
+          </button>
+        </div>
       </div>
 
-      {products.length === 0 ? (
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div 
+          onClick={() => handleStatClick('all')}
+          className="bg-white p-4 rounded-lg shadow border border-slate-200 cursor-pointer hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-600">Toplam Ürün</p>
+              <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
+            </div>
+            <Package className="w-8 h-8 text-blue-500" />
+          </div>
+        </div>
+
+        <div 
+          onClick={() => handleStatClick('filters')}
+          className="bg-white p-4 rounded-lg shadow border border-slate-200 cursor-pointer hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-600">Filtreler</p>
+              <p className="text-2xl font-bold text-slate-900">{stats.filters}</p>
+            </div>
+            <Filter className="w-8 h-8 text-green-500" />
+          </div>
+        </div>
+
+        <div 
+          onClick={() => handleStatClick('oils')}
+          className="bg-white p-4 rounded-lg shadow border border-slate-200 cursor-pointer hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-600">Yağlar</p>
+              <p className="text-2xl font-bold text-slate-900">{stats.oils}</p>
+            </div>
+            <Droplets className="w-8 h-8 text-yellow-500" />
+          </div>
+        </div>
+
+        <div 
+          onClick={() => handleStatClick('lowStock')}
+          className="bg-white p-4 rounded-lg shadow border border-slate-200 cursor-pointer hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-600">Kritik Stok</p>
+              <p className="text-2xl font-bold text-red-600">{stats.lowStock}</p>
+            </div>
+            <AlertTriangle className="w-8 h-8 text-red-500" />
+          </div>
+        </div>
+      </div>
+
+      {/* Search and Filters */}
+      {showFilters && (
+        <div className="bg-white p-4 rounded-lg shadow border border-slate-200 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Arama
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  placeholder="Ürün adı, SKU, barkod..."
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Kategori
+              </label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+              >
+                <option value="">Tüm Kategoriler</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-end">
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('');
+                }}
+                className="w-full px-4 py-2 text-slate-600 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                Temizle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {filteredProducts.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg">
           <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <p className="text-slate-600">Henüz ürün eklenmemiş</p>
+          <p className="text-slate-600">
+            {searchQuery || selectedCategory ? 'Arama kriterlerinize uygun ürün bulunamadı' : 'Henüz ürün eklenmemiş'}
+          </p>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -102,6 +329,9 @@ export function ProductsTab() {
                     SKU
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    Barkod
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
                     Fiyat
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
@@ -116,7 +346,7 @@ export function ProductsTab() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                   <tr key={product.id} className="hover:bg-slate-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -142,7 +372,8 @@ export function ProductsTab() {
                     <td className="px-6 py-4 text-sm text-slate-600">
                       {getCategoryName(product.category_id)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{product.sku}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{product.sku || '-'}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{product.barcode || '-'}</td>
                     <td className="px-6 py-4 text-sm">
                       {product.sale_price ? (
                         <div>
